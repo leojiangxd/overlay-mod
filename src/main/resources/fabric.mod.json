@@ -9,7 +9,7 @@
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/leojiangxd/overlay-mod"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/overlay-mod/icon.png",
@@ -26,7 +26,8 @@
 		]
 	},
 	"mixins": [
-		"overlay-mod.mixins.json"
+		"bossbarhud.mixins.json",
+		"statuseffectoverlay.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.16.9",

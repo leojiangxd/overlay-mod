@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "schemaVersion": 1,
+  "package": "com.triangled.overlaymod.mixin",
+  "mixins": [
+    "StatusEffectOverlayMixin"
+  ],
+  "client": [
+    "StatusEffectOverlayMixin"
+  ]
+}
+

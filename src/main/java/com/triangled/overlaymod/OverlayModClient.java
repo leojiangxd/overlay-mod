@@ -4,15 +4,17 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.text.Text;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.util.Formatting;
+
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import net.minecraft.client.font.TextRenderer;
-
+import java.util.Collection;
 
 @Environment(EnvType.CLIENT)
 public class OverlayModClient implements ClientModInitializer {
@@ -62,9 +64,6 @@ public class OverlayModClient implements ClientModInitializer {
             context.drawText(client.textRenderer, Text.literal(coordinates), 3, 3, 0xFFFFFF, true);
             context.drawText(client.textRenderer, Text.literal(sprinting + formattedTime), client.getWindow().getScaledWidth()
                     - textRenderer.getWidth(sprinting + formattedTime) - 2, 3, 0xFFFFFF, true);
-
-            // Potions Overlay
-
         }
     }
 
