@@ -9,12 +9,10 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.util.Formatting;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
 
 @Environment(EnvType.CLIENT)
 public class OverlayModClient implements ClientModInitializer {

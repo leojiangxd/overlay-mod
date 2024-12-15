@@ -8,7 +8,6 @@ import net.minecraft.client.gui.hud.BossBarHud;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -55,13 +54,13 @@ public class StatusEffectOverlayMixin {
         int bossBarOffset = getBossBarOffset(context, client);
 
         int nonBeneficialOffsetY = beneficialEffects.isEmpty()
-                ? 0 + bossBarOffset
+                ? bossBarOffset
                 : 32 + bossBarOffset;
 
         List<Runnable> renderTasks = new ArrayList<>();
-        renderEffects(client, context, beneficialEffects, beneficialStartX, 0 + bossBarOffset, renderTasks);
+        renderEffects(client, context, beneficialEffects, beneficialStartX, bossBarOffset, renderTasks);
         renderEffects(client, context, nonBeneficialEffects, nonBeneficialStartX, nonBeneficialOffsetY, renderTasks);
-        renderTimers(client, context, beneficialEffects, beneficialStartX, 0 + bossBarOffset, renderTasks);
+        renderTimers(client, context, beneficialEffects, beneficialStartX, bossBarOffset, renderTasks);
         renderTimers(client, context, nonBeneficialEffects, nonBeneficialStartX, nonBeneficialOffsetY, renderTasks);
         renderTasks.forEach(Runnable::run);
         RenderSystem.disableBlend();
@@ -155,17 +154,14 @@ public class StatusEffectOverlayMixin {
                     context.getMatrices().translate(0.5, 0, 0);
                     context.getMatrices().translate(-(amplifierX + amplifierLength / 2.0), -(amplifierY + client.textRenderer.fontHeight / 2.0), 0);
 
-                    // Draw the outline by rendering the text slightly offset in all directions
                     context.drawText(client.textRenderer, amplifier, amplifierX - 1, amplifierY, 0xFF000000, false);
                     context.drawText(client.textRenderer, amplifier, amplifierX + 1, amplifierY, 0xFF000000, false);
                     context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY - 1, 0xFF000000, false);
                     context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY + 1, 0xFF000000, false);
-
-                    // Draw the main text
                     amplifier = (statusEffectInstance.isAmbient() ? Formatting.YELLOW : "") + amplifier;
                     context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY, 0xFFFFFFFF, false);
 
-                    context.getMatrices().pop(); // Restore the matrix state
+                    context.getMatrices().pop();
                 }
 
                 // Draw Duration
