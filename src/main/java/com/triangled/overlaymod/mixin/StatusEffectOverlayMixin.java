@@ -37,32 +37,31 @@ public class StatusEffectOverlayMixin {
         }
 
         RenderSystem.enableBlend();
-        List<StatusEffectInstance> visibleEffects = Ordering.natural().sortedCopy(collection)
+        List<StatusEffectInstance> effects = Ordering.natural().sortedCopy(collection)
                 .stream()
-                .filter(StatusEffectInstance::shouldShowIcon)
                 .toList();
-        List<StatusEffectInstance> beneficialEffects = visibleEffects.stream()
+        List<StatusEffectInstance> beneficialEffects = effects.stream()
                 .filter(effect -> effect.getEffectType().value().isBeneficial())
                 .collect(Collectors.toList());
 
-        List<StatusEffectInstance> nonBeneficialEffects = visibleEffects.stream()
+        List<StatusEffectInstance> nonBeneficialEffects = effects.stream()
                 .filter(effect -> !effect.getEffectType().value().isBeneficial())
                 .collect(Collectors.toList());
 
         int screenWidth = context.getScaledWindowWidth();
-        int effectWidth = 28;
-        int beneficialStartX = calculateStartX(screenWidth, beneficialEffects.size(), effectWidth);
-        int nonBeneficialStartX = calculateStartX(screenWidth, nonBeneficialEffects.size(), effectWidth);
+        int effectWidth = 29;
+        int beneficialStartX = calculateStartX(screenWidth, beneficialEffects.size(), effectWidth) + 2;
+        int nonBeneficialStartX = calculateStartX(screenWidth, nonBeneficialEffects.size(), effectWidth) + 2;
         int bossBarOffset = getBossBarOffset(context, client);
 
         int nonBeneficialOffsetY = beneficialEffects.isEmpty()
-                ? 4 + bossBarOffset
-                : 36 + bossBarOffset;
+                ? 0 + bossBarOffset
+                : 32 + bossBarOffset;
 
         List<Runnable> renderTasks = new ArrayList<>();
-        renderEffects(client, context, beneficialEffects, beneficialStartX, 4 + bossBarOffset, renderTasks);
+        renderEffects(client, context, beneficialEffects, beneficialStartX, 0 + bossBarOffset, renderTasks);
         renderEffects(client, context, nonBeneficialEffects, nonBeneficialStartX, nonBeneficialOffsetY, renderTasks);
-        renderTimers(client, context, beneficialEffects, beneficialStartX, 4 + bossBarOffset, renderTasks);
+        renderTimers(client, context, beneficialEffects, beneficialStartX, 0 + bossBarOffset, renderTasks);
         renderTimers(client, context, nonBeneficialEffects, nonBeneficialStartX, nonBeneficialOffsetY, renderTasks);
         renderTasks.forEach(Runnable::run);
         RenderSystem.disableBlend();
@@ -97,7 +96,7 @@ public class StatusEffectOverlayMixin {
                                int startX, int verticalOffset, List<Runnable> renderTasks) {
         for (int i = 0; i < effects.size(); i++) {
             StatusEffectInstance statusEffectInstance = effects.get(i);
-            int currentX = startX + i * 28;
+            int currentX = startX + i * 29;
             int currentY = verticalOffset;
 
             if (client.isDemo()) {
@@ -134,7 +133,7 @@ public class StatusEffectOverlayMixin {
                                int startX, int verticalOffset, List<Runnable> renderTasks) {
         for (int i = 0; i < effects.size(); i++) {
             StatusEffectInstance statusEffectInstance = effects.get(i);
-            int currentX = startX + i * 28;
+            int currentX = startX + i * 29;
             int currentY = verticalOffset - 3;
 
             if (client.isDemo()) {
@@ -144,18 +143,28 @@ public class StatusEffectOverlayMixin {
             int finalY = currentY;
             renderTasks.add(() -> {
                 // Draw amplifier
-                String amplifier = statusEffectInstance.getAmplifier() > 0 ? String.valueOf(statusEffectInstance.getAmplifier() + 1) : "";
+                String amplifier = (statusEffectInstance.getAmplifier() > 0 ? String.valueOf(statusEffectInstance.getAmplifier() + 1) : "");
                 if (!amplifier.isEmpty()) {
                     int amplifierLength = client.textRenderer.getWidth(amplifier);
                     int amplifierX = currentX + (24 - amplifierLength) / 2;
-                    int amplifierY = finalY;
+                    int amplifierY = finalY + 11;
 
                     context.getMatrices().push(); // Save the current matrix state
                     context.getMatrices().translate(amplifierX + amplifierLength / 2.0, amplifierY + client.textRenderer.fontHeight / 2.0, 0);
                     context.getMatrices().scale(0.5f, 0.5f, 1.0f);
-                    context.getMatrices().translate(0, -0.5, 0); // Adjust the scaled height up by 1 pixel
+                    context.getMatrices().translate(0.5, 0, 0);
                     context.getMatrices().translate(-(amplifierX + amplifierLength / 2.0), -(amplifierY + client.textRenderer.fontHeight / 2.0), 0);
-                    context.drawTextWithShadow(client.textRenderer, amplifier, amplifierX, amplifierY, 0xFFFFFFFF);
+
+                    // Draw the outline by rendering the text slightly offset in all directions
+                    context.drawText(client.textRenderer, amplifier, amplifierX - 1, amplifierY, 0xFF000000, false);
+                    context.drawText(client.textRenderer, amplifier, amplifierX + 1, amplifierY, 0xFF000000, false);
+                    context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY - 1, 0xFF000000, false);
+                    context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY + 1, 0xFF000000, false);
+
+                    // Draw the main text
+                    amplifier = (statusEffectInstance.isAmbient() ? Formatting.YELLOW : "") + amplifier;
+                    context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY, 0xFFFFFFFF, false);
+
                     context.getMatrices().pop(); // Restore the matrix state
                 }
 
@@ -163,31 +172,29 @@ public class StatusEffectOverlayMixin {
                 String duration = getDurationAsString(statusEffectInstance);
                 int durationLength = client.textRenderer.getWidth(duration);
                 int durationX = currentX + (24 - durationLength) / 2;
-                int durationY = finalY + 24;
+                int durationY = finalY + 26;
                 context.drawTextWithShadow(client.textRenderer, duration, durationX, durationY, 0xFFFFFFFF);
             });
         }
     }
 
     private String getDurationAsString(StatusEffectInstance effect) {
-        int totalSeconds = effect.getDuration() / 20;
+        long totalSeconds = effect.getDuration() / 20;
+        String formattedDuration = effect.isAmbient() ? String.valueOf(Formatting.YELLOW) : "";
 
         if (effect.getDuration() <= -1) {
-            return "∞";
-        } else if (totalSeconds / 86400 > 0) {
+            return formattedDuration + "∞";
+        } else if (totalSeconds / (86400 * 99) > 0) {
             return "";
-        }  else if (totalSeconds / 3600 > 0) {
-            return totalSeconds / 3600 + "h";
+        } else if (totalSeconds / 86400 > 0) {
+            return formattedDuration + totalSeconds / 86400 + "ᴅ";
+        } else if (totalSeconds / 3600 > 0) {
+            return formattedDuration + totalSeconds / 3600 + "ʜ";
         } else if ((totalSeconds % 3600) / 60 > 0) {
-            int minutes = (totalSeconds % 3600) / 60;
-            int seconds = totalSeconds % 60;
-            return String.format("%d:%02d", minutes, seconds);
-        }  else {
-            String formattedDuration = Integer.toString(totalSeconds % 60);
-            if (totalSeconds <= 10) {
-                return Formatting.RED + formattedDuration;
-            }
-            return formattedDuration;
+            return formattedDuration + String.format("%d:%02d", (totalSeconds % 3600) / 60, totalSeconds % 60);
+        } else {
+            formattedDuration += String.format("0:%02d", totalSeconds % 60);
+            return totalSeconds <= 10 ? Formatting.RED + formattedDuration : formattedDuration;
         }
     }
 }
