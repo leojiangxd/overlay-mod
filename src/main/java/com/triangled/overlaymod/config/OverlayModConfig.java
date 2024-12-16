@@ -32,8 +32,8 @@ public class OverlayModConfig implements ConfigData {
         public String xText = "&r";
         public String yText = "&r";
         public String zText = "&r";
-        public String dirFacingPos = "&e₍₊₎";
-        public String dirFacingNeg = "&e₍₋₎";
+        public String dirFacingPos = "&e⁽⁺⁾";
+        public String dirFacingNeg = "&e⁽⁻⁾";
         public String dirText = "&r";
         public String deliminator = "&e, ";
 
@@ -62,6 +62,8 @@ public class OverlayModConfig implements ConfigData {
     public static class StatusEffectsCategory {
         public boolean showStatusEffects = true;
         public boolean renderBackground = false;
+        public boolean renderAmplifier = true;
+        public boolean renderDuration = true;
         public String dayText = "ᴅ";
         public String hourText = "ʜ";
         public String amplifierText = "&f";

@@ -153,34 +153,38 @@ public class StatusEffectOverlayMixin {
             int finalY = currentY;
             renderTasks.add(() -> {
                 // Draw amplifier
-                String amplifier = replaceAnd(statusEffectInstance.getAmplifier() > 0 ? String.valueOf(statusEffectInstance.getAmplifier() + 1) : "");
-                if (!amplifier.isEmpty()) {
-                    int amplifierLength = client.textRenderer.getWidth(amplifier);
-                    int amplifierX = currentX + (24 - amplifierLength) / 2;
-                    int amplifierY = finalY + 11;
+                if (statusEffectConfig.renderAmplifier) {
+                    String amplifier = replaceAnd(statusEffectInstance.getAmplifier() > 0 ? String.valueOf(statusEffectInstance.getAmplifier() + 1) : "");
+                    if (!amplifier.isEmpty()) {
+                        int amplifierLength = client.textRenderer.getWidth(amplifier);
+                        int amplifierX = currentX + (24 - amplifierLength) / 2;
+                        int amplifierY = finalY + 11;
 
-                    context.getMatrices().push(); // Save the current matrix state
-                    context.getMatrices().translate(amplifierX + amplifierLength / 2.0, amplifierY + client.textRenderer.fontHeight / 2.0, 0);
-                    context.getMatrices().scale(0.5f, 0.5f, 1.0f);
-                    context.getMatrices().translate(0.5, 0, 0);
-                    context.getMatrices().translate(-(amplifierX + amplifierLength / 2.0), -(amplifierY + client.textRenderer.fontHeight / 2.0), 0);
+                        context.getMatrices().push(); // Save the current matrix state
+                        context.getMatrices().translate(amplifierX + amplifierLength / 2.0, amplifierY + client.textRenderer.fontHeight / 2.0, 0);
+                        context.getMatrices().scale(0.5f, 0.5f, 1.0f);
+                        context.getMatrices().translate(0.5, 0, 0);
+                        context.getMatrices().translate(-(amplifierX + amplifierLength / 2.0), -(amplifierY + client.textRenderer.fontHeight / 2.0), 0);
 
-                    context.drawText(client.textRenderer, amplifier, amplifierX - 1, amplifierY, 0xFF000000, false);
-                    context.drawText(client.textRenderer, amplifier, amplifierX + 1, amplifierY, 0xFF000000, false);
-                    context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY - 1, 0xFF000000, false);
-                    context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY + 1, 0xFF000000, false);
-                    amplifier = replaceAnd(statusEffectInstance.isAmbient() ? statusEffectConfig.ambientAmplifierText : statusEffectConfig.amplifierText) + amplifier;
-                    context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY, 0xFFFFFFFF, false);
+                        context.drawText(client.textRenderer, amplifier, amplifierX - 1, amplifierY, 0xFF000000, false);
+                        context.drawText(client.textRenderer, amplifier, amplifierX + 1, amplifierY, 0xFF000000, false);
+                        context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY - 1, 0xFF000000, false);
+                        context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY + 1, 0xFF000000, false);
+                        amplifier = replaceAnd(statusEffectInstance.isAmbient() ? statusEffectConfig.ambientAmplifierText : statusEffectConfig.amplifierText) + amplifier;
+                        context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY, 0xFFFFFFFF, false);
 
-                    context.getMatrices().pop();
+                        context.getMatrices().pop();
+                    }
                 }
 
                 // Draw Duration
-                String duration = replaceAnd(statusEffectConfig.durationText + getDurationAsString(statusEffectInstance));
-                int durationLength = client.textRenderer.getWidth(duration);
-                int durationX = currentX + (24 - durationLength) / 2;
-                int durationY = finalY + 26;
-                context.drawTextWithShadow(client.textRenderer, duration, durationX, durationY, 0xFFFFFFFF);
+                if (statusEffectConfig.renderDuration) {
+                    String duration = replaceAnd(statusEffectConfig.durationText + getDurationAsString(statusEffectInstance));
+                    int durationLength = client.textRenderer.getWidth(duration);
+                    int durationX = currentX + (24 - durationLength) / 2;
+                    int durationY = finalY + 26;
+                    context.drawTextWithShadow(client.textRenderer, duration, durationX, durationY, 0xFFFFFFFF);
+                }
             });
         }
     }
