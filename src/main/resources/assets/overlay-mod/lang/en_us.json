@@ -1,0 +1,39 @@
+{
+  "text.autoconfig.overlay-mod.title": "Overlay Mod",
+
+  "text.autoconfig.overlay-mod.category.coordinates": "Coordinates",
+  "text.autoconfig.overlay-mod.option.coordinates": "Coordinates",
+  "text.autoconfig.overlay-mod.option.coordinates.showCoordinates": "Show Coordinates",
+  "text.autoconfig.overlay-mod.option.coordinates.directionStyle": "Direction Style",
+  "text.autoconfig.overlay-mod.option.coordinates.xText": "X Text",
+  "text.autoconfig.overlay-mod.option.coordinates.yText": "Y Text",
+  "text.autoconfig.overlay-mod.option.coordinates.zText": "Z Text",
+  "text.autoconfig.overlay-mod.option.coordinates.dirFacingPos": "Positive Facing Direction Symbol",
+  "text.autoconfig.overlay-mod.option.coordinates.dirFacingNeg": "Negative Facing Direction Symbol",
+  "text.autoconfig.overlay-mod.option.coordinates.dirText": "Direction Text",
+  "text.autoconfig.overlay-mod.option.coordinates.deliminator": "Coordinate Delimiter",
+
+  "text.autoconfig.overlay-mod.category.statusEffects": "Status Effect",
+  "text.autoconfig.overlay-mod.option.statusEffects": "Status Effects",
+  "text.autoconfig.overlay-mod.option.statusEffects.showStatusEffects": "Show Status Effects",
+  "text.autoconfig.overlay-mod.option.statusEffects.renderBackground": "Render Background for Status Effects",
+  "text.autoconfig.overlay-mod.option.statusEffects.dayText": "Day indicator text",
+  "text.autoconfig.overlay-mod.option.statusEffects.hourText": "Hour indicator text",
+  "text.autoconfig.overlay-mod.option.statusEffects.amplifierText": "Amplifier Text",
+  "text.autoconfig.overlay-mod.option.statusEffects.durationText": "Duration Text",
+  "text.autoconfig.overlay-mod.option.statusEffects.ambientAmplifierText": "Ambient Amplifier Text",
+  "text.autoconfig.overlay-mod.option.statusEffects.ambientDurationText": "Ambient Duration Text",
+  "text.autoconfig.overlay-mod.option.statusEffects.expirationDuration": "Expiration Duration (Seconds)",
+  "text.autoconfig.overlay-mod.option.statusEffects.expirationText": "Expiration Text",
+
+  "text.autoconfig.overlay-mod.category.sprinting": "Sprinting",
+  "text.autoconfig.overlay-mod.option.sprinting": "Sprinting",
+  "text.autoconfig.overlay-mod.option.sprinting.showSprinting": "Show Sprinting Status",
+  "text.autoconfig.overlay-mod.option.sprinting.sprintingText": "Sprinting Text",
+
+  "text.autoconfig.overlay-mod.category.clock": "Clock",
+  "text.autoconfig.overlay-mod.option.clock": "Clock",
+  "text.autoconfig.overlay-mod.option.clock.showClock": "Show Clock",
+  "text.autoconfig.overlay-mod.option.clock.clockText": "Clock Text",
+  "text.autoconfig.overlay-mod.option.clock.clockFormat": "Clock Format"
+}

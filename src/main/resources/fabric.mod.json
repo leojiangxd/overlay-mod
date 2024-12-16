@@ -8,7 +8,7 @@
 		"Triangled"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
+		"homepage": "https://modrinth.com/mod/overlay-mod",
 		"sources": "https://github.com/leojiangxd/overlay-mod"
 	},
 	"license": "CC0-1.0",
@@ -18,11 +18,11 @@
 		"main": [
 			"com.triangled.overlaymod.OverlayMod"
 		],
-		"fabric-datagen": [
-			"com.triangled.overlaymod.OverlayModDataGenerator"
-		],
 		"client" : [
 			"com.triangled.overlaymod.OverlayModClient"
+		],
+		"modmenu": [
+			"com.triangled.overlaymod.config.ModMenuIntegration"
 		]
 	},
 	"mixins": [
@@ -36,6 +36,6 @@
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"another-mod": "*"
+		"modmenu": "11.0.3"
 	}
 }

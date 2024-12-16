@@ -14,18 +14,28 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import net.minecraft.util.Identifier;
+import me.shedaniel.autoconfig.AutoConfig;
+
+import com.triangled.overlaymod.config.OverlayModConfig;
+
+import static com.triangled.overlaymod.config.OverlayModConfig.replaceAnd;
 
 @Mixin(InGameHud.class)
 public class StatusEffectOverlayMixin {
+    OverlayModConfig.StatusEffectsCategory statusEffectConfig = AutoConfig.getConfigHolder(OverlayModConfig.class).getConfig().statusEffects;
     @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
     private void renderCenteredStatusEffectOverlay(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        if (!statusEffectConfig.showStatusEffects) {
+            return;
+        }
+
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) {
             return;
@@ -104,19 +114,20 @@ public class StatusEffectOverlayMixin {
 
             float f = 1.0F;
             int finalY = currentY;
-            if (statusEffectInstance.isDurationBelow(200)) {
+            if (statusEffectInstance.isDurationBelow((statusEffectConfig.expirationDuration + 1) * 20)) {
                 int m = statusEffectInstance.getDuration();
                 int n = 10 - m / 20;
                 f = MathHelper.clamp((float) m / 10.0F / 5.0F * 0.5F, 0.0F, 0.5F)
                         + MathHelper.cos((float) m * (float) Math.PI / 5.0F) * MathHelper.clamp((float) n / 10.0F * 0.25F, 0.0F, 0.25F);
             }
 
-//            //Draw background
-//            if (statusEffectInstance.isAmbient()) {
-//                context.drawGuiTexture(Identifier.ofVanilla("hud/effect_background_ambient"), currentX, finalY, 24, 24);
-//            } else {
-//                context.drawGuiTexture(Identifier.ofVanilla("hud/effect_background"), currentX, finalY, 24, 24);
-//            }
+            if (statusEffectConfig.renderBackground) {
+                if (statusEffectInstance.isAmbient()) {
+                    context.drawGuiTexture(Identifier.ofVanilla("hud/effect_background_ambient"), currentX, finalY, 24, 24);
+                } else {
+                    context.drawGuiTexture(Identifier.ofVanilla("hud/effect_background"), currentX, finalY, 24, 24);
+                }
+            }
 
             Sprite sprite = client.getStatusEffectSpriteManager().getSprite(statusEffectInstance.getEffectType());
             float finalAlpha = f;
@@ -142,7 +153,7 @@ public class StatusEffectOverlayMixin {
             int finalY = currentY;
             renderTasks.add(() -> {
                 // Draw amplifier
-                String amplifier = (statusEffectInstance.getAmplifier() > 0 ? String.valueOf(statusEffectInstance.getAmplifier() + 1) : "");
+                String amplifier = replaceAnd(statusEffectInstance.getAmplifier() > 0 ? String.valueOf(statusEffectInstance.getAmplifier() + 1) : "");
                 if (!amplifier.isEmpty()) {
                     int amplifierLength = client.textRenderer.getWidth(amplifier);
                     int amplifierX = currentX + (24 - amplifierLength) / 2;
@@ -158,14 +169,14 @@ public class StatusEffectOverlayMixin {
                     context.drawText(client.textRenderer, amplifier, amplifierX + 1, amplifierY, 0xFF000000, false);
                     context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY - 1, 0xFF000000, false);
                     context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY + 1, 0xFF000000, false);
-                    amplifier = (statusEffectInstance.isAmbient() ? Formatting.YELLOW : "") + amplifier;
+                    amplifier = replaceAnd(statusEffectInstance.isAmbient() ? statusEffectConfig.ambientAmplifierText : statusEffectConfig.amplifierText) + amplifier;
                     context.drawText(client.textRenderer, amplifier, amplifierX, amplifierY, 0xFFFFFFFF, false);
 
                     context.getMatrices().pop();
                 }
 
                 // Draw Duration
-                String duration = getDurationAsString(statusEffectInstance);
+                String duration = replaceAnd(statusEffectConfig.durationText + getDurationAsString(statusEffectInstance));
                 int durationLength = client.textRenderer.getWidth(duration);
                 int durationX = currentX + (24 - durationLength) / 2;
                 int durationY = finalY + 26;
@@ -176,21 +187,22 @@ public class StatusEffectOverlayMixin {
 
     private String getDurationAsString(StatusEffectInstance effect) {
         long totalSeconds = effect.getDuration() / 20;
-        String formattedDuration = effect.isAmbient() ? String.valueOf(Formatting.YELLOW) : "";
+        String ambientColor = effect.isAmbient() ? String.valueOf(statusEffectConfig.ambientDurationText) : "";
 
         if (effect.getDuration() <= -1) {
-            return formattedDuration + "∞";
+            return ambientColor + "∞";
         } else if (totalSeconds / (86400 * 99) > 0) {
             return "";
         } else if (totalSeconds / 86400 > 0) {
-            return formattedDuration + totalSeconds / 86400 + "ᴅ";
+            return ambientColor + totalSeconds / 86400 + statusEffectConfig.dayText;
         } else if (totalSeconds / 3600 > 0) {
-            return formattedDuration + totalSeconds / 3600 + "ʜ";
+            return ambientColor + totalSeconds / 3600 + statusEffectConfig.hourText;
         } else if ((totalSeconds % 3600) / 60 > 0) {
-            return formattedDuration + String.format("%d:%02d", (totalSeconds % 3600) / 60, totalSeconds % 60);
+            return ambientColor + String.format("%d:%02d", (totalSeconds % 3600) / 60, totalSeconds % 60);
         } else {
-            formattedDuration += String.format("0:%02d", totalSeconds % 60);
-            return totalSeconds <= 10 ? Formatting.RED + formattedDuration : formattedDuration;
+            return totalSeconds <= (statusEffectConfig.expirationDuration + 1)
+                    ? ambientColor + statusEffectConfig.expirationText + String.format("0:%02d", totalSeconds % 60)
+                    : ambientColor + String.format("0:%02d", totalSeconds % 60);
         }
     }
 }
