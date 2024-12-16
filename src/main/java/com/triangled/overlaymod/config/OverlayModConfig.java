@@ -64,14 +64,23 @@ public class OverlayModConfig implements ConfigData {
         public boolean renderBackground = false;
         public boolean renderAmplifier = true;
         public boolean renderDuration = true;
-        public String dayText = "ᴅ";
-        public String hourText = "ʜ";
+        public String dayText = "d";
+        public String hourText = "h";
         public String amplifierText = "&f";
         public String durationText = "&f";
         public String ambientAmplifierText = "&e";
         public String ambientDurationText = "&e";
         public int expirationDuration = 10;
         public String expirationText = "&c";
+        public int effectWidth = 29;
+        public float amplifierScale = 0.5f;
+        public float amplifierXOffset = 0.5f;
+        public float amplifierYOffset = 0;
+        public float durationScale = 1.0f;
+        public float durationXOffset = 0;
+        public float durationYOffset = 0;
+        public boolean separateNegativeEffects = true;
+        public int negativeEffectOffset = 32;
     }
 
     @Config(name = "sprinting")

@@ -30,6 +30,7 @@ import static com.triangled.overlaymod.config.OverlayModConfig.replaceAnd;
 @Mixin(InGameHud.class)
 public class StatusEffectOverlayMixin {
     OverlayModConfig.StatusEffectsCategory statusEffectConfig = AutoConfig.getConfigHolder(OverlayModConfig.class).getConfig().statusEffects;
+
     @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
     private void renderCenteredStatusEffectOverlay(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (!statusEffectConfig.showStatusEffects) {
@@ -49,33 +50,44 @@ public class StatusEffectOverlayMixin {
         List<StatusEffectInstance> effects = Ordering.natural().sortedCopy(collection)
                 .stream()
                 .toList();
-        List<StatusEffectInstance> beneficialEffects = effects.stream()
-                .filter(effect -> effect.getEffectType().value().isBeneficial())
-                .collect(Collectors.toList());
-
-        List<StatusEffectInstance> nonBeneficialEffects = effects.stream()
-                .filter(effect -> !effect.getEffectType().value().isBeneficial())
-                .collect(Collectors.toList());
 
         int screenWidth = context.getScaledWindowWidth();
-        int effectWidth = 29;
-        int beneficialStartX = calculateStartX(screenWidth, beneficialEffects.size(), effectWidth) + 2;
-        int nonBeneficialStartX = calculateStartX(screenWidth, nonBeneficialEffects.size(), effectWidth) + 2;
+        int effectWidth = statusEffectConfig.effectWidth;
         int bossBarOffset = getBossBarOffset(context, client);
-
-        int nonBeneficialOffsetY = beneficialEffects.isEmpty()
-                ? bossBarOffset
-                : 32 + bossBarOffset;
-
         List<Runnable> renderTasks = new ArrayList<>();
-        renderEffects(client, context, beneficialEffects, beneficialStartX, bossBarOffset, renderTasks);
-        renderEffects(client, context, nonBeneficialEffects, nonBeneficialStartX, nonBeneficialOffsetY, renderTasks);
-        renderTimers(client, context, beneficialEffects, beneficialStartX, bossBarOffset, renderTasks);
-        renderTimers(client, context, nonBeneficialEffects, nonBeneficialStartX, nonBeneficialOffsetY, renderTasks);
+
+        if (statusEffectConfig.separateNegativeEffects) {
+            List<StatusEffectInstance> beneficialEffects = effects.stream()
+                    .filter(effect -> effect.getEffectType().value().isBeneficial())
+                    .collect(Collectors.toList());
+
+            List<StatusEffectInstance> nonBeneficialEffects = effects.stream()
+                    .filter(effect -> !effect.getEffectType().value().isBeneficial())
+                    .collect(Collectors.toList());
+
+            int beneficialStartX = calculateStartX(screenWidth, beneficialEffects.size(), effectWidth) + 2;
+            int nonBeneficialStartX = calculateStartX(screenWidth, nonBeneficialEffects.size(), effectWidth) + 2;
+
+            int nonBeneficialOffsetY = beneficialEffects.isEmpty()
+                    ? bossBarOffset
+                    : statusEffectConfig.negativeEffectOffset + bossBarOffset;
+
+            renderEffects(client, context, beneficialEffects, beneficialStartX, bossBarOffset, renderTasks);
+            renderEffects(client, context, nonBeneficialEffects, nonBeneficialStartX, nonBeneficialOffsetY, renderTasks);
+            renderTimers(client, context, beneficialEffects, beneficialStartX, bossBarOffset, renderTasks);
+            renderTimers(client, context, nonBeneficialEffects, nonBeneficialStartX, nonBeneficialOffsetY, renderTasks);
+        } else {
+            int combinedStartX = calculateStartX(screenWidth, effects.size(), effectWidth) + 2;
+
+            renderEffects(client, context, effects, combinedStartX, bossBarOffset, renderTasks);
+            renderTimers(client, context, effects, combinedStartX, bossBarOffset, renderTasks);
+        }
+
         renderTasks.forEach(Runnable::run);
         RenderSystem.disableBlend();
         ci.cancel();
     }
+
 
     private static int getBossBarOffset(DrawContext context, MinecraftClient client) {
         int numberOfBossBars;
@@ -105,7 +117,7 @@ public class StatusEffectOverlayMixin {
                                int startX, int verticalOffset, List<Runnable> renderTasks) {
         for (int i = 0; i < effects.size(); i++) {
             StatusEffectInstance statusEffectInstance = effects.get(i);
-            int currentX = startX + i * 29;
+            int currentX = startX + i * statusEffectConfig.effectWidth;
             int currentY = verticalOffset;
 
             if (client.isDemo()) {
@@ -143,7 +155,7 @@ public class StatusEffectOverlayMixin {
                                int startX, int verticalOffset, List<Runnable> renderTasks) {
         for (int i = 0; i < effects.size(); i++) {
             StatusEffectInstance statusEffectInstance = effects.get(i);
-            int currentX = startX + i * 29;
+            int currentX = startX + i * statusEffectConfig.effectWidth;
             int currentY = verticalOffset - 3;
 
             if (client.isDemo()) {
@@ -162,8 +174,8 @@ public class StatusEffectOverlayMixin {
 
                         context.getMatrices().push(); // Save the current matrix state
                         context.getMatrices().translate(amplifierX + amplifierLength / 2.0, amplifierY + client.textRenderer.fontHeight / 2.0, 0);
-                        context.getMatrices().scale(0.5f, 0.5f, 1.0f);
-                        context.getMatrices().translate(0.5, 0, 0);
+                        context.getMatrices().scale(statusEffectConfig.amplifierScale, statusEffectConfig.amplifierScale, 1.0f);
+                        context.getMatrices().translate(statusEffectConfig.amplifierXOffset, statusEffectConfig.amplifierYOffset, 0);
                         context.getMatrices().translate(-(amplifierX + amplifierLength / 2.0), -(amplifierY + client.textRenderer.fontHeight / 2.0), 0);
 
                         context.drawText(client.textRenderer, amplifier, amplifierX - 1, amplifierY, 0xFF000000, false);
@@ -183,7 +195,16 @@ public class StatusEffectOverlayMixin {
                     int durationLength = client.textRenderer.getWidth(duration);
                     int durationX = currentX + (24 - durationLength) / 2;
                     int durationY = finalY + 26;
-                    context.drawTextWithShadow(client.textRenderer, duration, durationX, durationY, 0xFFFFFFFF);
+
+                    context.getMatrices().push();
+                    context.getMatrices().translate(durationX + durationLength / 2.0, durationY + client.textRenderer.fontHeight / 2.0, 0);
+                    context.getMatrices().scale(statusEffectConfig.durationScale, statusEffectConfig.durationScale, 1.0f);
+                    context.getMatrices().translate(statusEffectConfig.durationXOffset, statusEffectConfig.durationYOffset, 0);
+                    context.getMatrices().translate(-(durationX + durationLength / 2.0), -(durationY + client.textRenderer.fontHeight / 2.0), 0);
+
+                    context.drawText(client.textRenderer, duration, durationX, durationY, 0xFFFFFFFF, true);
+
+                    context.getMatrices().pop();
                 }
             });
         }
