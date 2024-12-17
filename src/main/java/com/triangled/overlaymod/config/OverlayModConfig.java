@@ -80,7 +80,7 @@ public class OverlayModConfig implements ConfigData {
         public float durationXOffset = 0;
         public float durationYOffset = 0;
         public boolean separateNegativeEffects = true;
-        public int negativeEffectOffsetY = 32;
+        public int negativeEffectYOffset = 32;
         public int statusEffectYOffset = 0;
     }
 

@@ -70,7 +70,7 @@ public class StatusEffectOverlayMixin {
 
             int nonBeneficialOffsetY = beneficialEffects.isEmpty()
                     ? statusEffectOffsetY
-                    : statusEffectConfig.negativeEffectOffsetY + statusEffectOffsetY;
+                    : statusEffectConfig.negativeEffectYOffset + statusEffectOffsetY;
 
             renderEffects(client, context, beneficialEffects, beneficialOffsetX, statusEffectOffsetY, renderTasks);
             renderEffects(client, context, nonBeneficialEffects, nonBeneficialOffsetX, nonBeneficialOffsetY, renderTasks);
