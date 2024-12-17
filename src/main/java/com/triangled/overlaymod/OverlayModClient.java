@@ -78,7 +78,7 @@ public class OverlayModClient implements ClientModInitializer {
         }
         if (clockConfig.showClock || sprintingConfig.showSprinting) {
             context.drawText(client.textRenderer, Text.literal(sprinting + formattedTime), client.getWindow().getScaledWidth()
-                    - client.textRenderer.getWidth(sprinting + formattedTime) - 2, 3, 0xFFFFFF, true);
+                    - client.textRenderer.getWidth(sprinting + formattedTime) - 3, 3, 0xFFFFFF, true);
         }
     }
 }
