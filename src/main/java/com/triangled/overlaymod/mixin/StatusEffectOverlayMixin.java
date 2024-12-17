@@ -53,7 +53,7 @@ public class StatusEffectOverlayMixin {
 
         int screenWidth = context.getScaledWindowWidth();
         int effectWidth = statusEffectConfig.effectWidth;
-        int bossBarOffset = getBossBarOffset(context, client);
+        int statusEffectOffsetY = getBossBarOffset(context, client) + statusEffectConfig.statusEffectYOffset;
         List<Runnable> renderTasks = new ArrayList<>();
 
         if (statusEffectConfig.separateNegativeEffects) {
@@ -65,22 +65,22 @@ public class StatusEffectOverlayMixin {
                     .filter(effect -> !effect.getEffectType().value().isBeneficial())
                     .collect(Collectors.toList());
 
-            int beneficialStartX = calculateStartX(screenWidth, beneficialEffects.size(), effectWidth) + 2;
-            int nonBeneficialStartX = calculateStartX(screenWidth, nonBeneficialEffects.size(), effectWidth) + 2;
+            int beneficialOffsetX = calculateOffsetX(screenWidth, beneficialEffects.size(), effectWidth) + 2;
+            int nonBeneficialOffsetX = calculateOffsetX(screenWidth, nonBeneficialEffects.size(), effectWidth) + 2;
 
             int nonBeneficialOffsetY = beneficialEffects.isEmpty()
-                    ? bossBarOffset
-                    : statusEffectConfig.negativeEffectOffset + bossBarOffset;
+                    ? statusEffectOffsetY
+                    : statusEffectConfig.negativeEffectOffsetY + statusEffectOffsetY;
 
-            renderEffects(client, context, beneficialEffects, beneficialStartX, bossBarOffset, renderTasks);
-            renderEffects(client, context, nonBeneficialEffects, nonBeneficialStartX, nonBeneficialOffsetY, renderTasks);
-            renderTimers(client, context, beneficialEffects, beneficialStartX, bossBarOffset, renderTasks);
-            renderTimers(client, context, nonBeneficialEffects, nonBeneficialStartX, nonBeneficialOffsetY, renderTasks);
+            renderEffects(client, context, beneficialEffects, beneficialOffsetX, statusEffectOffsetY, renderTasks);
+            renderEffects(client, context, nonBeneficialEffects, nonBeneficialOffsetX, nonBeneficialOffsetY, renderTasks);
+            renderTimers(client, context, beneficialEffects, beneficialOffsetX, statusEffectOffsetY, renderTasks);
+            renderTimers(client, context, nonBeneficialEffects, nonBeneficialOffsetX, nonBeneficialOffsetY, renderTasks);
         } else {
-            int combinedStartX = calculateStartX(screenWidth, effects.size(), effectWidth) + 2;
+            int combinedOffsetX = calculateOffsetX(screenWidth, effects.size(), effectWidth) + 2;
 
-            renderEffects(client, context, effects, combinedStartX, bossBarOffset, renderTasks);
-            renderTimers(client, context, effects, combinedStartX, bossBarOffset, renderTasks);
+            renderEffects(client, context, effects, combinedOffsetX, statusEffectOffsetY, renderTasks);
+            renderTimers(client, context, effects, combinedOffsetX, statusEffectOffsetY, renderTasks);
         }
 
         renderTasks.forEach(Runnable::run);
@@ -108,16 +108,16 @@ public class StatusEffectOverlayMixin {
         return bossBarOffset;
     }
 
-    private int calculateStartX(int screenWidth, int effectCount, int effectWidth) {
+    private int calculateOffsetX(int screenWidth, int effectCount, int effectWidth) {
         int totalEffectsWidth = effectCount * effectWidth;
         return (screenWidth - totalEffectsWidth) / 2;
     }
 
     private void renderEffects(MinecraftClient client, DrawContext context, List<StatusEffectInstance> effects,
-                               int startX, int verticalOffset, List<Runnable> renderTasks) {
+                               int OffsetX, int verticalOffset, List<Runnable> renderTasks) {
         for (int i = 0; i < effects.size(); i++) {
             StatusEffectInstance statusEffectInstance = effects.get(i);
-            int currentX = startX + i * statusEffectConfig.effectWidth;
+            int currentX = OffsetX + i * statusEffectConfig.effectWidth;
             int currentY = verticalOffset;
 
             if (client.isDemo()) {
@@ -152,10 +152,10 @@ public class StatusEffectOverlayMixin {
     }
 
     private void renderTimers(MinecraftClient client, DrawContext context, List<StatusEffectInstance> effects,
-                               int startX, int verticalOffset, List<Runnable> renderTasks) {
+                               int OffsetX, int verticalOffset, List<Runnable> renderTasks) {
         for (int i = 0; i < effects.size(); i++) {
             StatusEffectInstance statusEffectInstance = effects.get(i);
-            int currentX = startX + i * statusEffectConfig.effectWidth;
+            int currentX = OffsetX + i * statusEffectConfig.effectWidth;
             int currentY = verticalOffset - 3;
 
             if (client.isDemo()) {
