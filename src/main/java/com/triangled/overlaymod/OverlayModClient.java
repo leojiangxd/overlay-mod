@@ -67,9 +67,11 @@ public class OverlayModClient implements ClientModInitializer {
         String formattedTime = "";
         String sprinting = "";
         if (clockConfig.showClock) {
-            LocalTime time = LocalTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(clockConfig.clockFormat);
-            formattedTime = replaceAnd(clockConfig.clockText + time.format(formatter));
+            try {
+                LocalTime time = LocalTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(clockConfig.clockFormat);
+                formattedTime = replaceAnd(clockConfig.clockText + time.format(formatter));
+            } catch (Exception ignored) {}
         }
         if (sprintingConfig.showSprinting) {
             sprinting = replaceAnd(client.options.sprintKey.isPressed() ? sprintingConfig.sprintingText : "");
