@@ -1,12 +1,11 @@
 # Overlay Mod
 Basic overlay mod for coordinates, sprint, IRL time, and status effects.
-- Coordinates: shows XYZ + direction & movement direction.
-- Status Effects: Blinks at 10 seconds; gets pushed down by bossbars.
-  - Works best with 4x GUI scale.
-- Sprint Indicator: Just shows if sprint is toggled.
-- Time: h:mm formatted IRL time.
+- Coordinates: Shows XYZ, compass direction, and facing movement direction.
+- Status Effects:
+  - Centered status effect indicator that is pushed down by boss bars.
+  - Positive and negative effects can be separated.
+  - Timer changes color and icon blinks when status effect is about to run out.
+- Sprint Indicator: Shows if sprint is toggled on/held.
+- Time: Customizable real life clock.
 
 ![demo](https://cdn.modrinth.com/data/h6qF9sNN/images/881ef77d144556e67d6b5e25cf320125100629c9.png)
-
-## Customization
-Soon™
