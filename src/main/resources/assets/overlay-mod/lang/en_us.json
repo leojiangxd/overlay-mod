@@ -37,6 +37,7 @@
   "text.autoconfig.overlay-mod.option.statusEffects.separateNegativeEffects": "Separate Negative Effects",
   "text.autoconfig.overlay-mod.option.statusEffects.negativeEffectYOffset": "Negative Effects Y Offset",
   "text.autoconfig.overlay-mod.option.statusEffects.statusEffectYOffset": "Status Effect Y Offset",
+  "text.autoconfig.overlay-mod.option.statusEffects.superScriptAmplifiers": "Display Amplifier Digits as Superscripts",
 
   "text.autoconfig.overlay-mod.category.sprinting": "Sprinting",
   "text.autoconfig.overlay-mod.option.sprinting": "Sprinting",

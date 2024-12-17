@@ -166,7 +166,11 @@ public class StatusEffectOverlayMixin {
             renderTasks.add(() -> {
                 // Draw amplifier
                 if (statusEffectConfig.renderAmplifier) {
-                    String amplifier = replaceAnd(statusEffectInstance.getAmplifier() > 0 ? String.valueOf(statusEffectInstance.getAmplifier() + 1) : "");
+                    String amplifier = replaceAnd(statusEffectInstance.getAmplifier() > 0
+                            ? (statusEffectConfig.superScriptAmplifiers
+                                ? convertToSuperscript(String.valueOf(statusEffectInstance.getAmplifier() + 1))
+                                : String.valueOf(statusEffectInstance.getAmplifier() + 1))
+                            : "");
                     if (!amplifier.isEmpty()) {
                         int amplifierLength = client.textRenderer.getWidth(amplifier);
                         int amplifierX = currentX + (24 - amplifierLength) / 2;
@@ -225,9 +229,24 @@ public class StatusEffectOverlayMixin {
         } else if ((totalSeconds % 3600) / 60 > 0) {
             return ambientColor + String.format("%d:%02d", (totalSeconds % 3600) / 60, totalSeconds % 60);
         } else {
-            return totalSeconds <= (statusEffectConfig.expirationDuration + 1)
+            return totalSeconds < (statusEffectConfig.expirationDuration + 1)
                     ? ambientColor + statusEffectConfig.expirationText + String.format("0:%02d", totalSeconds % 60)
                     : ambientColor + String.format("0:%02d", totalSeconds % 60);
         }
     }
+
+    private String convertToSuperscript(String input) {
+        String[] superscriptDigits = {"⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹"};
+        StringBuilder result = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            if (Character.isDigit(c)) {
+                int digit = c - '0';
+                result.append(superscriptDigits[digit]);
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
+
 }

@@ -73,15 +73,16 @@ public class OverlayModConfig implements ConfigData {
         public int expirationDuration = 10;
         public String expirationText = "&c";
         public int effectWidth = 29;
-        public float amplifierScale = 0.5f;
-        public float amplifierXOffset = 0.5f;
-        public float amplifierYOffset = 0;
+        public float amplifierScale = 1.0f;
+        public float amplifierXOffset = 1.0f;
+        public float amplifierYOffset = 1.5f;
         public float durationScale = 1.0f;
         public float durationXOffset = 0;
         public float durationYOffset = 0;
         public boolean separateNegativeEffects = true;
         public int negativeEffectYOffset = 32;
         public int statusEffectYOffset = 0;
+        public boolean superScriptAmplifiers = true;
     }
 
     @Config(name = "sprinting")
