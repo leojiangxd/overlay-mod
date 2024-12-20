@@ -96,7 +96,7 @@ public class EquipmentOverlayMixin {
                     offsetX = context.getScaledWindowWidth() - equipmentWidth * 2 + equipmentConfig.equipmentXOffset;
                     break;
                 case HOTBAR_LEFT:
-                    offsetX += offsetXLeft - 60 - equipmentConfig.equipmentXOffset;
+                    offsetX += offsetXLeft + 22 - equipmentWidth * 2 - equipmentConfig.equipmentXOffset;
                     if ((arm == 1 && offHand.getItem() != Items.AIR)
                             || (arm == -1 && mainHand.getItem() != Items.AIR)) {
                         offsetX -= 29;
