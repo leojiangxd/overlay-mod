@@ -27,6 +27,7 @@
 	},
 	"mixins": [
 		"bossbarhud.mixins.json",
+		"equipmentoverlay.mixins.json",
 		"statuseffectoverlay.mixins.json"
 	],
 	"depends": {

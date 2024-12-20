@@ -23,6 +23,10 @@ public class OverlayModConfig implements ConfigData {
     @ConfigEntry.Category("statusEffects")
     public StatusEffectsCategory statusEffects = new StatusEffectsCategory();
 
+    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    @ConfigEntry.Category("equipment")
+    public EquipmentCategory equipment = new EquipmentCategory();
+
     @Config(name = "coordinates")
     public static class CoordinatesCategory {
         public boolean showCoordinates = true;
@@ -83,6 +87,27 @@ public class OverlayModConfig implements ConfigData {
         public int negativeEffectYOffset = 32;
         public int statusEffectYOffset = 0;
         public boolean superScriptAmplifiers = true;
+        public int bossBarInitialYOffset = 0;
+    }
+
+    @Config(name = "equipment")
+    public static class EquipmentCategory {
+        public boolean showEquipment = true;
+        @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
+        public ArmorPosition armorPosition = ArmorPosition.HOTBAR_RIGHT;
+        public boolean showMainHand = true;
+        public boolean showArmor = true;
+        public boolean showDurability = true;
+        public boolean reverseArmorOrder = true;
+        public boolean renderBackground = true;
+        public float durabilityScale = 1.0f;
+        public int durabilityXOffset = 0;
+        public int durabilityYOffset = 0;
+        public int equipmentXOffset = 0;
+        public int equipmentYOffset = 0;
+        public enum ArmorPosition {
+            HOTBAR_LEFT, HOTBAR_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
+        }
     }
 
     @Config(name = "sprinting")

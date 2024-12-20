@@ -8,7 +8,9 @@ import net.minecraft.client.gui.hud.BossBarHud;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.Sprite;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -31,16 +33,16 @@ import static com.triangled.overlaymod.config.OverlayModConfig.replaceAnd;
 public class StatusEffectOverlayMixin {
     OverlayModConfig.StatusEffectsCategory statusEffectConfig = AutoConfig.getConfigHolder(OverlayModConfig.class).getConfig().statusEffects;
 
+    @Shadow
+    @Final
+    private MinecraftClient client;
+
     @Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
     private void renderCenteredStatusEffectOverlay(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (!statusEffectConfig.showStatusEffects) {
             return;
         }
 
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null) {
-            return;
-        }
         Collection<StatusEffectInstance> collection = client.player.getStatusEffects();
         if (collection.isEmpty()) {
             return;
@@ -53,7 +55,9 @@ public class StatusEffectOverlayMixin {
 
         int screenWidth = context.getScaledWindowWidth();
         int effectWidth = statusEffectConfig.effectWidth;
-        int statusEffectOffsetY = getBossBarOffset(context, client) + statusEffectConfig.statusEffectYOffset;
+        int statusEffectOffsetY = getBossBarOffset(context, client) -
+                (getBossBarOffset(context, client) + statusEffectConfig.bossBarInitialYOffset > 0 ?
+                        statusEffectConfig.bossBarInitialYOffset : 0) + statusEffectConfig.statusEffectYOffset;
         List<Runnable> renderTasks = new ArrayList<>();
 
         if (statusEffectConfig.separateNegativeEffects) {
