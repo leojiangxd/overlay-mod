@@ -46,6 +46,7 @@
   "text.autoconfig.overlay-mod.option.equipment.showMainHand": "Show Main Hand",
   "text.autoconfig.overlay-mod.option.equipment.showArmor": "Show Armor",
   "text.autoconfig.overlay-mod.option.equipment.showDurability": "Show Durability",
+  "text.autoconfig.overlay-mod.option.equipment.durabilityAsPercentage": "Show Durability as Percentages",
   "text.autoconfig.overlay-mod.option.equipment.reverseArmorOrder": "Reverse Armor Order",
   "text.autoconfig.overlay-mod.option.equipment.renderBackground": "Render Background for Equipment",
   "text.autoconfig.overlay-mod.option.equipment.durabilityScale": "Durability Scale",

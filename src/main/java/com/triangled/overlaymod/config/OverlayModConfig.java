@@ -98,6 +98,7 @@ public class OverlayModConfig implements ConfigData {
         public boolean showMainHand = true;
         public boolean showArmor = true;
         public boolean showDurability = true;
+        public boolean durabilityAsPercentage = false;
         public boolean reverseArmorOrder = true;
         public boolean renderBackground = true;
         public float durabilityScale = 1.0f;

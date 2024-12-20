@@ -144,6 +144,16 @@ public class EquipmentOverlayMixin {
         if (item.getMaxDamage() == 0 || item.getComponents().contains(UNBREAKABLE)) {
             return "";
         }
+        
+        if (equipmentConfig.durabilityAsPercentage) {
+            int durabilityPercentage = (int) (currentDamage / (double) item.getMaxDamage() * 100);
+            if (durabilityPercentage >= 100) {
+                return "";
+            } else {
+                return String.format("%d%%", durabilityPercentage);
+            }
+        }
+
         if (currentDamage < 1000) {
             return Integer.toString(currentDamage);
         } else if (currentDamage < 10000) {
