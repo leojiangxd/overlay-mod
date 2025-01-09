@@ -55,7 +55,12 @@ public class EquipmentOverlayMixin {
         int offsetY = context.getScaledWindowHeight() - 23 - equipmentConfig.equipmentYOffset;
         int l = 0;
 
-        ItemStack offHand = player.getInventory().offHand.getLast();
+        ItemStack offHand;
+        try {
+            offHand = player.getInventory().offHand.getLast();
+        } catch (Exception e) {
+            offHand = ItemStack.EMPTY;
+        }
         ItemStack mainHand = player.getInventory().getMainHandStack();
         if (equipmentConfig.showDurability && player.getInventory().offHand != null) {
             int durabilityLength = client.textRenderer.getWidth(getDurability(offHand));
