@@ -32,6 +32,7 @@ import static com.triangled.overlaymod.config.OverlayModConfig.replaceAnd;
 @Mixin(InGameHud.class)
 public class StatusEffectOverlayMixin {
     OverlayModConfig.StatusEffectsCategory statusEffectConfig = AutoConfig.getConfigHolder(OverlayModConfig.class).getConfig().statusEffects;
+    private static OverlayModConfig.BossBarCategory scaleBossBarConfig = AutoConfig.getConfigHolder(OverlayModConfig.class).getConfig().bossbar;
 
     @Shadow
     @Final
@@ -103,13 +104,18 @@ public class StatusEffectOverlayMixin {
         } catch (Exception e) {
             numberOfBossBars = 0;
         }
-        int bossBarOffset = 0;
-        int maxIterations = Math.min(numberOfBossBars, (int) Math.round((context.getScaledWindowHeight() / 3.0) / 19));
-
-        while (bossBarOffset / 19 + 1 <= maxIterations) {
+        if (numberOfBossBars <= 0)
+            return 0;
+        int bossBarOffset = 12;
+        float scale = scaleBossBarConfig.shouldScaleBossBars ? scaleBossBarConfig.scale : 1.0F;
+        int maxHeight = scaleBossBarConfig.shouldScaleBossBars ?  scaleBossBarConfig.maxHeight : 3;
+        for (int i = 0; i < numberOfBossBars; i++) {
             bossBarOffset += 19;
+            if (bossBarOffset >= (context.getScaledWindowHeight() / scale) / maxHeight) {
+                break;
+            }
         }
-        return bossBarOffset;
+        return (int) ((bossBarOffset - 12) * scale);
     }
 
     private int calculateOffsetX(int screenWidth, int effectCount, int effectWidth) {
@@ -252,5 +258,4 @@ public class StatusEffectOverlayMixin {
         }
         return result.toString();
     }
-
 }

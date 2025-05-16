@@ -27,6 +27,10 @@ public class OverlayModConfig implements ConfigData {
     @ConfigEntry.Category("equipment")
     public EquipmentCategory equipment = new EquipmentCategory();
 
+    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    @ConfigEntry.Category("bossbar")
+    public BossBarCategory bossbar = new BossBarCategory();
+
     @Config(name = "coordinates")
     public static class CoordinatesCategory {
         public boolean showCoordinates = true;
@@ -122,6 +126,14 @@ public class OverlayModConfig implements ConfigData {
         public boolean showClock = true;
         public String clockText = "&r";
         public String clockFormat = "h:mm";
+    }
+
+    @Config(name = "bossbar")
+    public static class BossBarCategory {
+        public boolean shouldScaleBossBars = true;
+        public float scale = 0.5F;
+        public float yOffset = 3.0F;
+        public int maxHeight = 6;
     }
 
     public static String replaceAnd(String input) {

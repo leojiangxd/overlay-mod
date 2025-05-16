@@ -66,5 +66,12 @@
   "text.autoconfig.overlay-mod.option.clock": "Clock",
   "text.autoconfig.overlay-mod.option.clock.showClock": "Show Clock",
   "text.autoconfig.overlay-mod.option.clock.clockText": "Clock Text",
-  "text.autoconfig.overlay-mod.option.clock.clockFormat": "Clock Format"
+  "text.autoconfig.overlay-mod.option.clock.clockFormat": "Clock Format",
+
+  "text.autoconfig.overlay-mod.category.bossbar": "Bossbar",
+  "text.autoconfig.overlay-mod.option.bossbar": "Bossbar",
+  "text.autoconfig.overlay-mod.option.bossbar.shouldScaleBossBars": "Scale Boss Bar",
+  "text.autoconfig.overlay-mod.option.bossbar.scale": "Scale",
+  "text.autoconfig.overlay-mod.option.bossbar.yOffset": "Y Offset",
+  "text.autoconfig.overlay-mod.option.bossbar.maxHeight": "Max Screen Height Fraction"
 }
