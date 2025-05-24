@@ -40,21 +40,23 @@ public class EquipmentOverlayMixin {
 
     @Inject(method = "renderHotbar", at = @At("TAIL"))
     public void renderArmorHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        // Disable all additional rendering
         if (!(this.client.getCameraEntity() instanceof PlayerEntity player) || !equipmentConfig.showEquipment) {
             return;
         }
 
-        List<ItemStack> equipment = player.getInventory().armor.stream()
-                .filter(s -> s.getItem() != Items.AIR).collect(Collectors.toList());
-        if (equipmentConfig.reverseArmorOrder)
-            equipment = equipment.reversed();
-
+        // Variables
         int arm = player.getMainArm() == Arm.RIGHT ? 1 : -1;
         int offsetXLeft =  context.getScaledWindowWidth() / 2 - 120;
         int offsetXRight = context.getScaledWindowWidth() / 2 + 109;
-        int offsetY = context.getScaledWindowHeight() - 23 - equipmentConfig.equipmentYOffset;
+        int offsetY = context.getScaledWindowHeight() - 23 - equipmentConfig.armorYOffset;
         int l = 0;
 
+        // GET ITEMS
+        List<ItemStack> armor = player.getInventory().armor.stream()
+                .filter(s -> s.getItem() != Items.AIR).collect(Collectors.toList());
+        if (equipmentConfig.reverseArmorOrder)
+            armor = armor.reversed();
         ItemStack offHand;
         try {
             offHand = player.getInventory().offHand.getLast();
@@ -62,46 +64,65 @@ public class EquipmentOverlayMixin {
             offHand = ItemStack.EMPTY;
         }
         ItemStack mainHand = player.getInventory().getMainHandStack();
-        if (equipmentConfig.showDurability && player.getInventory().offHand != null) {
-            int durabilityLength = client.textRenderer.getWidth(getDurability(offHand));
-            context.drawText(client.textRenderer, getDurability(offHand),
-                    (arm == 1 ? offsetXLeft + 11 : offsetXRight) - (durabilityLength / 2),
-                    (int) (offsetY - 9 - equipmentConfig.durabilityYOffset),
-                    offHand.getItemBarColor(), true);
-        }
 
-        if (equipmentConfig.showMainHand && mainHand.getItem() != Items.AIR) {
-            int durabilityLength = client.textRenderer.getWidth(getDurability(mainHand));
-            String path = arm == 1 ?  "hud/hotbar_offhand_right" : "hud/hotbar_offhand_left";
+
+        // Draw durability
+        if (equipmentConfig.showEmptyOffHand) {
+            String path = arm == 1 ? "hud/hotbar_offhand_left" : "hud/hotbar_offhand_right";
             if (equipmentConfig.renderBackground) {
                 RenderSystem.enableBlend();
                 RenderSystem.defaultBlendFunc();
-                context.drawGuiTexture(Identifier.ofVanilla(path), 29, 24, 0, 0,
-                        (arm == 1 ? offsetXRight - 18 : offsetXLeft), offsetY, 29, 24);
+                int x = arm == 1 ? offsetXLeft : offsetXRight - 18;
+                context.drawGuiTexture(Identifier.ofVanilla(path), 29, 24, 0, 0, x, offsetY, 29, 24);
                 RenderSystem.disableBlend();
             }
-            this.renderHotbarItem(context, (arm == 1 ? offsetXRight - 8: offsetXLeft + 3),
-                    offsetY + 4, tickCounter, player, mainHand, ++l);
-            if (equipmentConfig.showDurability) {
-                context.drawText(client.textRenderer, getDurability(mainHand),
-                        (arm == 1 ? offsetXRight : offsetXLeft + 11) - (durabilityLength) / 2,
-                        offsetY - 9 - (int) equipmentConfig.durabilityYOffset, mainHand.getItemBarColor(), true);
+        }
+
+        if (equipmentConfig.showDurability && player.getInventory().offHand != null) {
+            String durability = getDurability(offHand);
+            int durabilityLength = client.textRenderer.getWidth(durability);
+            int x = (arm == 1 ? offsetXLeft + 11 : offsetXRight) - (durabilityLength / 2);
+            int y = (int) (offsetY - 9 - equipmentConfig.durabilityYOffset);
+            context.drawText(client.textRenderer, durability, x, y, offHand.getItemBarColor(), true);
+        }
+
+        if (equipmentConfig.showMainHand && (equipmentConfig.showEmptyMainHand || mainHand.getItem() != Items.AIR)) {
+            String path = arm == 1 ? "hud/hotbar_offhand_right" : "hud/hotbar_offhand_left";
+            if (equipmentConfig.renderMainHandBackground) {
+                RenderSystem.enableBlend();
+                RenderSystem.defaultBlendFunc();
+                int x = arm == 1 ? offsetXRight - 18 : offsetXLeft;
+                context.drawGuiTexture(Identifier.ofVanilla(path), 29, 24, 0, 0, x, offsetY, 29, 24);
+                RenderSystem.disableBlend();
+            }
+
+            if (mainHand.getItem() != Items.AIR) {
+                String durability = getDurability(mainHand);
+                int durabilityLength = client.textRenderer.getWidth(durability);
+                int itemX = arm == 1 ? offsetXRight - 8 : offsetXLeft + 3;
+                this.renderHotbarItem(context, itemX, offsetY + 4, tickCounter, player, mainHand, ++l);
+
+                if (equipmentConfig.showDurability) {
+                    int textX = (arm == 1 ? offsetXRight : offsetXLeft + 11) - (durabilityLength / 2);
+                    int textY = offsetY - 9 - (int) equipmentConfig.durabilityYOffset;
+                    context.drawText(client.textRenderer, durability, textX, textY, mainHand.getItemBarColor(), true);
+                }
             }
         }
 
         offsetY += 1;
-        if (equipmentConfig.showArmor && !equipment.isEmpty()) {
-            int equipmentWidth = equipment.size() * 10 + 1;
+        if (equipmentConfig.showArmor && !armor.isEmpty()) {
+            int equipmentWidth = armor.size() * 10 + 1;
             int offsetX = 0;
             switch (equipmentConfig.armorPosition) {
                 case BOTTOM_LEFT:
-                    offsetX -= equipmentConfig.equipmentXOffset;
+                    offsetX -= equipmentConfig.armorXOffset;
                     break;
                 case BOTTOM_RIGHT:
-                    offsetX = context.getScaledWindowWidth() - equipmentWidth * 2 + equipmentConfig.equipmentXOffset;
+                    offsetX = context.getScaledWindowWidth() - equipmentWidth * 2 + equipmentConfig.armorXOffset;
                     break;
                 case HOTBAR_LEFT:
-                    offsetX += offsetXLeft + 22 - equipmentWidth * 2 - equipmentConfig.equipmentXOffset;
+                    offsetX += offsetXLeft + 22 - equipmentWidth * 2 - equipmentConfig.armorXOffset;
                     if ((arm == 1 && offHand.getItem() != Items.AIR)
                             || (arm == -1 && mainHand.getItem() != Items.AIR)) {
                         offsetX -= 29;
@@ -109,7 +130,7 @@ public class EquipmentOverlayMixin {
                     break;
                 case HOTBAR_RIGHT:
                 default:
-                    offsetX += offsetXRight - 11 + equipmentConfig.equipmentXOffset;;
+                    offsetX += offsetXRight - 11 + equipmentConfig.armorXOffset;;
                     if ((arm == -1 && offHand.getItem() != Items.AIR)
                             || (arm == 1 && mainHand.getItem() != Items.AIR)) {
                         offsetX += 29;
@@ -125,14 +146,14 @@ public class EquipmentOverlayMixin {
                         offsetX + equipmentWidth, offsetY, equipmentWidth, 22);
                 RenderSystem.disableBlend();
             }
-            for (int i = 0; i < equipment.size(); i++) {
-                ItemStack item = equipment.get(i);
+            for (int i = 0; i < armor.size(); i++) {
+                ItemStack item = armor.get(i);
                 this.renderHotbarItem(context, offsetX + 3 + i * 20, offsetY + 3, tickCounter, player, item, ++l);
                 int durabilityLength = client.textRenderer.getWidth(getDurability(item));
                 if (equipmentConfig.showDurability) {
-                context.drawText(client.textRenderer, getDurability(item),
-                        (offsetX + 11 - durabilityLength / 2 + i * 20 + (int) equipmentConfig.durabilityXOffset),
-                         (offsetY - 10 - (int)equipmentConfig.durabilityYOffset), item.getItemBarColor(), true);
+                    context.drawText(client.textRenderer, getDurability(item),
+                            (offsetX + 11 - durabilityLength / 2 + i * 20 + (int) equipmentConfig.durabilityXOffset),
+                            (offsetY - 10 - (int)equipmentConfig.durabilityYOffset), item.getItemBarColor(), true);
                 }
             }
         }
@@ -149,7 +170,7 @@ public class EquipmentOverlayMixin {
         if (item.getMaxDamage() == 0 || item.getComponents().contains(UNBREAKABLE)) {
             return "";
         }
-        
+
         if (equipmentConfig.durabilityAsPercentage) {
             int durabilityPercentage = (int) (currentDamage / (double) item.getMaxDamage() * 100);
             if (durabilityPercentage >= 100) {
