@@ -102,7 +102,7 @@ public class OverlayModConfig implements ConfigData {
         public boolean showEquipment = true;
         public boolean showEmptyMainHand = false;
         public boolean showEmptyOffHand = false;
-        public boolean showEmptyArmor = true;
+        // public boolean showEmptyArmor = true;
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public ArmorPosition armorPosition = ArmorPosition.HOTBAR_RIGHT;
         public boolean showMainHand = true;
