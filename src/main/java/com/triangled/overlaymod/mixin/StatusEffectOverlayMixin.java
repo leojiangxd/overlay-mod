@@ -62,7 +62,7 @@ public class StatusEffectOverlayMixin {
                     })
                     .toList();
         
-            if (collection.isEmpty()) return;
+            if (collection.isEmpty()) ci.cancel();
         }
         
         
