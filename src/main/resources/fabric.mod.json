@@ -16,29 +16,29 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.triangled.overlaymod.OverlayMod"
+			"triangled.overlaymod.OverlayMod"
 		],
-		"client" : [
-			"com.triangled.overlaymod.OverlayModClient"
+		"client": [
+			"triangled.overlaymod.OverlayModClient"
 		],
 		"modmenu": [
-			"com.triangled.overlaymod.config.ModMenuIntegration"
+			"triangled.overlaymod.config.ModMenuIntegration"
 		]
 	},
 	"mixins": [
-		"bossbarhud.mixins.json",
-		"equipmentoverlay.mixins.json",
-		"statuseffectoverlay.mixins.json",
-		"scalebossbarmixin.mixins.json"
+		"overlay-mod.mixins.json",
+		{
+			"config": "overlay-mod.client.mixins.json",
+			"environment": "client"
+		}
 	],
 	"depends": {
-		"fabricloader": ">=0.16.9",
-		"minecraft": "~1.21",
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.5",
 		"java": ">=21",
-		"fabric-api": "*",
-		"cloth-config": ">=15.0.140"
+		"fabric-api": "*"
 	},
 	"suggests": {
-		"modmenu": "11.0.3"
+		"modmenu": "14.0.0"
 	}
 }

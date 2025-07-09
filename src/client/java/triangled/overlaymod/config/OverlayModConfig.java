@@ -1,6 +1,6 @@
-package com.triangled.overlaymod.config;
+package triangled.overlaymod.config;
 
-import com.triangled.overlaymod.OverlayMod;
+import triangled.overlaymod.OverlayMod;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
@@ -92,17 +92,11 @@ public class OverlayModConfig implements ConfigData {
         public int statusEffectYOffset = 0;
         public boolean superScriptAmplifiers = true;
         public int bossBarInitialYOffset = 0;
-        @ConfigEntry.Gui.Tooltip(count = 1)
-        public String filteredEffects = "";
-        
     }
 
     @Config(name = "equipment")
     public static class EquipmentCategory {
         public boolean showEquipment = true;
-        public boolean showEmptyMainHand = false;
-        public boolean showEmptyOffHand = false;
-        // public boolean showEmptyArmor = true;
         @ConfigEntry.Gui.EnumHandler(option = ConfigEntry.Gui.EnumHandler.EnumDisplayOption.BUTTON)
         public ArmorPosition armorPosition = ArmorPosition.HOTBAR_RIGHT;
         public boolean showMainHand = true;
@@ -110,13 +104,12 @@ public class OverlayModConfig implements ConfigData {
         public boolean showDurability = true;
         public boolean durabilityAsPercentage = false;
         public boolean reverseArmorOrder = true;
-        public boolean renderMainHandBackground = true;
         public boolean renderBackground = true;
         public float durabilityScale = 1.0f;
         public int durabilityXOffset = 0;
         public int durabilityYOffset = 0;
-        public int armorXOffset = 0;
-        public int armorYOffset = 0;
+        public int equipmentXOffset = 0;
+        public int equipmentYOffset = 0;
         public enum ArmorPosition {
             HOTBAR_LEFT, HOTBAR_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
         }

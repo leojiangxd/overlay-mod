@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "triangled.overlaymod.mixin.client",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"BossBarHudMixin",
+		"ScaleBossBarMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

@@ -1,6 +1,6 @@
-package com.triangled.overlaymod.mixin;
+package triangled.overlaymod.mixin.client;
 
-import com.triangled.overlaymod.config.OverlayModConfig;
+import triangled.overlaymod.config.OverlayModConfig;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.BossBarHud;
@@ -8,11 +8,13 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.ClientBossBar;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
+import net.minecraft.util.profiler.Profilers;
 import net.minecraft.entity.boss.BossBar;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import net.minecraft.util.profiler.Profiler;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -21,7 +23,8 @@ import java.util.UUID;
 
 @Mixin(BossBarHud.class)
 public abstract class ScaleBossBarMixin {
-    OverlayModConfig.BossBarCategory scaleBossBarConfig = AutoConfig.getConfigHolder(OverlayModConfig.class).getConfig().bossbar;
+    OverlayModConfig.BossBarCategory scaleBossBarConfig =
+            AutoConfig.getConfigHolder(OverlayModConfig.class).getConfig().bossbar;
 
     @Final
     @Shadow
@@ -53,7 +56,8 @@ public abstract class ScaleBossBarMixin {
             matrixStack.scale(scale, scale, 1.0F);
             matrixStack.translate(-centerX, scaleBossBarConfig.yOffset, 0.0F);
 
-            client.getProfiler().push("bossHealth");
+            Profiler profiler = Profilers.get();
+            profiler.push("bossHealth");
             int i = context.getScaledWindowWidth();
             int j = 12;
             Iterator<ClientBossBar> var4 = bossBars.values().iterator();
@@ -75,7 +79,7 @@ public abstract class ScaleBossBarMixin {
                 }
             }
 
-            client.getProfiler().pop();
+            profiler.pop();
             matrixStack.pop();
         }
     }

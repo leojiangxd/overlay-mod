@@ -1,4 +1,4 @@
-package com.triangled.overlaymod.mixin;
+package triangled.overlaymod.mixin.client;
 
 import net.minecraft.client.gui.hud.BossBarHud;
 import net.minecraft.client.gui.hud.ClientBossBar;
