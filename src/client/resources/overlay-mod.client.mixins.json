@@ -4,7 +4,9 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"BossBarHudMixin",
-		"ScaleBossBarMixin"
+		"EquipmentOverlayMixin",
+		"ScaleBossBarMixin",
+		"StatusEffectOverlayMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
