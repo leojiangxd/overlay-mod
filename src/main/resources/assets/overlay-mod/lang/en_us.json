@@ -50,6 +50,7 @@
   "text.autoconfig.overlay-mod.option.equipment.reverseArmorOrder": "Reverse Armor Order",
   "text.autoconfig.overlay-mod.option.equipment.renderBackground": "Render Background for Equipment",
   "text.autoconfig.overlay-mod.option.equipment.durabilityScale": "Durability Scale",
+  "text.autoconfig.overlay-mod.option.equipment.subscriptDurability": "Subscript Durability",
   "text.autoconfig.overlay-mod.option.equipment.durabilityXOffset": "Durability X Offset",
   "text.autoconfig.overlay-mod.option.equipment.durabilityYOffset": "Durability Y Offset",
   "text.autoconfig.overlay-mod.option.equipment.equipmentXOffset": "Equipment X Offset",

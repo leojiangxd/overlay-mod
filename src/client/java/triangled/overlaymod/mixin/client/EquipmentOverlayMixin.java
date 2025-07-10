@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.RenderLayer;
+
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -33,7 +34,8 @@ public class EquipmentOverlayMixin {
     private MinecraftClient client;
 
     @Shadow
-    private void renderHotbarItem(DrawContext context, int x, int y, RenderTickCounter tickCounter, PlayerEntity player, ItemStack stack, int seed) {}
+    private void renderHotbarItem(DrawContext context, int x, int y, RenderTickCounter tickCounter, PlayerEntity player, ItemStack stack, int seed) {
+    }
 
     @Unique
     OverlayModConfig.EquipmentCategory equipmentConfig = AutoConfig.getConfigHolder(OverlayModConfig.class).getConfig().equipment;
@@ -47,7 +49,7 @@ public class EquipmentOverlayMixin {
 
         // Variables
         int arm = player.getMainArm() == Arm.RIGHT ? 1 : -1;
-        int offsetXLeft =  context.getScaledWindowWidth() / 2 - 120;
+        int offsetXLeft = context.getScaledWindowWidth() / 2 - 120;
         int offsetXRight = context.getScaledWindowWidth() / 2 + 109;
         int offsetY = context.getScaledWindowHeight() - 23 - equipmentConfig.equipmentYOffset;
         int l = 0;
@@ -71,14 +73,29 @@ public class EquipmentOverlayMixin {
             offHand = ItemStack.EMPTY;
         }
 
+        // Draw durability
+        if (equipmentConfig.showDurability && (offHand != ItemStack.EMPTY)) {
+            String path = arm == 1 ? "hud/hotbar_offhand_left" : "hud/hotbar_offhand_right";
+            if (equipmentConfig.renderBackground) {
+                context.drawGuiTexture(RenderLayer::getGuiTextured, Identifier.ofVanilla(path), 29, 24, 0, 0,
+                        (arm == 1 ? offsetXLeft : offsetXRight - 18), offsetY, 29, 24);
+            }
+
+            int durabilityLength = client.textRenderer.getWidth(getDurability(offHand));
+            context.drawText(client.textRenderer, getDurability(offHand),
+                    (arm == 1 ? offsetXLeft + 11 : offsetXRight) - (durabilityLength / 2),
+                    (offsetY - 9 - equipmentConfig.durabilityYOffset),
+                    offHand.getItemBarColor(), true);
+        }
+
         if (equipmentConfig.showMainHand && mainHand.getItem() != Items.AIR) {
             int durabilityLength = client.textRenderer.getWidth(getDurability(mainHand));
-            String path = arm == 1 ?  "hud/hotbar_offhand_right" : "hud/hotbar_offhand_left";
+            String path = arm == 1 ? "hud/hotbar_offhand_right" : "hud/hotbar_offhand_left";
             if (equipmentConfig.renderBackground) {
                 context.drawGuiTexture(RenderLayer::getGuiTextured, Identifier.ofVanilla(path), 29, 24, 0, 0,
                         (arm == 1 ? offsetXRight - 18 : offsetXLeft), offsetY, 29, 24);
             }
-            this.renderHotbarItem(context, (arm == 1 ? offsetXRight - 8: offsetXLeft + 3),
+            this.renderHotbarItem(context, (arm == 1 ? offsetXRight - 8 : offsetXLeft + 3),
                     offsetY + 4, tickCounter, player, mainHand, ++l);
             if (equipmentConfig.showDurability) {
                 context.drawText(client.textRenderer, getDurability(mainHand),
@@ -140,6 +157,12 @@ public class EquipmentOverlayMixin {
             return "";
         }
 
+        if (equipmentConfig.subscriptDurability) {
+            if (currentDamage < 10000) {
+                return convertToSubscript(Integer.toString(currentDamage));
+            }
+            return "";
+        }
         if (equipmentConfig.durabilityAsPercentage) {
             int durabilityPercentage = (int) (currentDamage / (double) item.getMaxDamage() * 100);
             if (durabilityPercentage >= 100) {
@@ -153,9 +176,23 @@ public class EquipmentOverlayMixin {
             return Integer.toString(currentDamage);
         } else if (currentDamage < 10000) {
             return String.format("%.1fk", Math.floor(currentDamage / 1000.0 * 10) / 10);
-        } else if (currentDamage >= 100000) {
+        } else {
             return String.format("%.0e", (double) currentDamage).replaceAll("e\\+0", "ᴇ");
         }
-        return "";
+    }
+
+    @Unique
+    private String convertToSubscript(String input) {
+        String[] subscriptDigits = {"₀", "₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉"};
+        StringBuilder result = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            if (Character.isDigit(c)) {
+                int digit = c - '0';
+                result.append(subscriptDigits[digit]);
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 }

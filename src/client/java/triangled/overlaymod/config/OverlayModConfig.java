@@ -106,6 +106,7 @@ public class OverlayModConfig implements ConfigData {
         public boolean reverseArmorOrder = false;
         public boolean renderBackground = true;
 //        public float durabilityScale = 1.0f;
+        public boolean subscriptDurability = false;
         public int durabilityXOffset = 0;
         public int durabilityYOffset = 0;
         public int equipmentXOffset = 0;
