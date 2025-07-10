@@ -59,6 +59,9 @@ public class EquipmentOverlayMixin {
                 player.getEquippedStack(EquipmentSlot.LEGS),
                 player.getEquippedStack(EquipmentSlot.FEET)
         ).filter(s -> s.getItem() != Items.AIR).toList();
+        if (equipmentConfig.reverseArmorOrder) {
+            equipment = equipment.reversed();
+        }
 
         ItemStack mainHand = player.getMainHandStack();
         ItemStack offHand;
