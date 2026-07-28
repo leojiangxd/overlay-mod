@@ -8,6 +8,7 @@ import net.minecraft.resources.Identifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import triangled.overlaymod.HUD.ClockHUD;
 import triangled.overlaymod.HUD.CoordinatesHUD;
 
 public class OverlayMod implements ModInitializer {
@@ -15,7 +16,8 @@ public class OverlayMod implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath(MOD_ID, "before_chat"), CoordinatesHUD::render);
+		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath(MOD_ID, "coordinates_hud"), CoordinatesHUD::render);
+		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath(MOD_ID, "clock_hud"), ClockHUD::render);
 	}
 
 	public static Identifier id(String path) {
