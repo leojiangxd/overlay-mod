@@ -17,15 +17,28 @@
 	"entrypoints": {
 		"main": [
 			"triangled.overlaymod.OverlayMod"
+		],
+		"client": [
+			"triangled.overlaymod.OverlayModClient"
+		],
+		"modmenu": [
+			"triangled.overlaymod.config.ModMenuIntegration"
 		]
 	},
 	"mixins": [
-		"overlay-mod.mixins.json"
+		"overlay-mod.mixins.json",
+		{
+			"config": "overlay-mod.client.mixins.json",
+			"environment": "client"
+		}
 	],
 	"depends": {
-		"fabricloader": ">=0.19.3",
-		"minecraft": "~26.2",
-		"java": ">=25",
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.4",
+		"java": ">=21",
 		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": "14.0.0"
 	}
 }
