@@ -17,10 +17,13 @@ public class ClockHUD {
     private static final int COLOR = 0xFFFFFFFF;
     private static final boolean TEXT_SHADOW = true;
 
+    private static boolean sprintIntentActive = false;
+
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
         Minecraft client = Minecraft.getInstance();
         OverlayModConfig config = OverlayMod.config;
-        if (config == null) return;
+        if (config == null)
+            return;
 
         OverlayModConfig.ClockCategory clockConfig = config.clock;
         OverlayModConfig.SprintingCategory sprintingConfig = config.sprinting;
@@ -28,7 +31,8 @@ public class ClockHUD {
         if (!(sprintingConfig.showSprinting || clockConfig.showClock) || client.gui.hud.isHidden()) {
             return;
         }
-        if (client.player == null) return;
+        if (client.player == null)
+            return;
 
         String sprinting = getSprintText(client, sprintingConfig);
         String formattedTime = getFormattedTime(clockConfig);
@@ -39,7 +43,8 @@ public class ClockHUD {
     }
 
     private static String getFormattedTime(OverlayModConfig.ClockCategory clockConfig) {
-        if (!clockConfig.showClock) return "";
+        if (!clockConfig.showClock)
+            return "";
         try {
             LocalTime time = LocalTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern(clockConfig.clockFormat);
@@ -50,7 +55,14 @@ public class ClockHUD {
     }
 
     private static String getSprintText(Minecraft client, OverlayModConfig.SprintingCategory sprintingConfig) {
-        if (!sprintingConfig.showSprinting) return "";
-        return replaceAnd(client.options.keySprint.isDown() ? sprintingConfig.sprintingText : "");
+        if (!sprintingConfig.showSprinting)
+            return "";
+
+        boolean hasGuiOpen = client.gui.screen() != null;
+        if (!hasGuiOpen) {
+            sprintIntentActive = client.options.keySprint.isDown();
+        }
+
+        return replaceAnd(sprintIntentActive ? sprintingConfig.sprintingText : "");
     }
 }
