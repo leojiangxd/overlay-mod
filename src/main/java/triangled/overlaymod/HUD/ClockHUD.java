@@ -3,29 +3,54 @@ package triangled.overlaymod.HUD;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.player.LocalPlayer;
+import triangled.overlaymod.OverlayMod;
+import triangled.overlaymod.config.OverlayModConfig;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-public class ClockHUD {
-    private static final Minecraft CLIENT = Minecraft.getInstance();
+import static triangled.overlaymod.config.OverlayModConfig.replaceAnd;
 
+public class ClockHUD {
     private static final int X_PADDING = 3;
-    private static final int Y_PADDING = 13;
+    private static final int Y_PADDING = 3;
     private static final int COLOR = 0xFFFFFFFF;
     private static final boolean TEXT_SHADOW = true;
 
-    private static final String CLOCK_FORMAT = "h:mma";
-
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
-        LocalPlayer player = CLIENT.player;
-        if (player == null) return;
+        Minecraft client = Minecraft.getInstance();
+        OverlayModConfig config = OverlayMod.config;
+        if (config == null) return;
 
-        LocalTime time = LocalTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(CLOCK_FORMAT);
-        String clockText = time.format(formatter);
+        OverlayModConfig.ClockCategory clockConfig = config.clock;
+        OverlayModConfig.SprintingCategory sprintingConfig = config.sprinting;
 
-        graphics.text(CLIENT.font, clockText, X_PADDING, Y_PADDING, COLOR, TEXT_SHADOW);
+        if (!(sprintingConfig.showSprinting || clockConfig.showClock) || client.gui.hud.isHidden()) {
+            return;
+        }
+        if (client.player == null) return;
+
+        String sprinting = getSprintText(client, sprintingConfig);
+        String formattedTime = getFormattedTime(clockConfig);
+
+        String combined = sprinting + formattedTime;
+        int x = graphics.guiWidth() - client.font.width(combined) - X_PADDING;
+        graphics.text(client.font, combined, x, Y_PADDING, COLOR, TEXT_SHADOW);
+    }
+
+    private static String getFormattedTime(OverlayModConfig.ClockCategory clockConfig) {
+        if (!clockConfig.showClock) return "";
+        try {
+            LocalTime time = LocalTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(clockConfig.clockFormat);
+            return replaceAnd(clockConfig.clockText + time.format(formatter));
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    private static String getSprintText(Minecraft client, OverlayModConfig.SprintingCategory sprintingConfig) {
+        if (!sprintingConfig.showSprinting) return "";
+        return replaceAnd(client.options.keySprint.isDown() ? sprintingConfig.sprintingText : "");
     }
 }

@@ -13,10 +13,13 @@
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/overlay-mod/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
-		"main": [
+		"client": [
 			"triangled.overlaymod.OverlayMod"
+		],
+		"modmenu": [
+			"triangled.overlaymod.config.ModMenuIntegration"
 		]
 	},
 	"mixins": [
@@ -27,5 +30,8 @@
 		"minecraft": "~26.2",
 		"java": ">=25",
 		"fabric-api": "*"
+	},
+	"suggests": {
+		"modmenu": "20.0.1"
 	}
 }

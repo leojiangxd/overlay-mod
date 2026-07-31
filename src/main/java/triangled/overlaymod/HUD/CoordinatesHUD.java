@@ -4,44 +4,55 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
+import triangled.overlaymod.OverlayMod;
+import triangled.overlaymod.config.OverlayModConfig;
+
+import static triangled.overlaymod.config.OverlayModConfig.replaceAnd;
 
 public class CoordinatesHUD {
-    private static final Minecraft CLIENT = Minecraft.getInstance();
-
     private static final int X_PADDING = 3;
     private static final int Y_PADDING = 3;
     private static final int COLOR = 0xFFFFFFFF;
     private static final boolean TEXT_SHADOW = true;
 
-    private static final int PRECISION = 0;
-    private static final String[] COMPASS_DIRECTIONS = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
-    private static final String[] X_DIRECTIONS = {"", "(+)", "(+)", "(+)", "", "(-)", "(-)", "(-)"};
-    private static final String[] Z_DIRECTIONS = {"(-)", "(-)", "", "(+)", "(+)", "(+)", "", "(-)"};
-
-
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
-        LocalPlayer player = CLIENT.player;
-        if (player == null) return;
+        Minecraft client = Minecraft.getInstance();
+        OverlayModConfig config = OverlayMod.config;
+        if (config == null) return;
 
-        double x = player.getX();
-        double y = player.getY();
-        double z = player.getZ();
+        OverlayModConfig.CoordinatesCategory coordsConfig = config.coordinates;
+        if (!coordsConfig.showCoordinates || client.gui.hud.isHidden()) return;
 
-        float yaw = player.getYRot();
-        int index = getMapIndex(yaw);
+        LocalPlayer player = client.player;
+        if (player == null || client.level == null) return;
 
-        String compass = COMPASS_DIRECTIONS[index];
-        String xSign = X_DIRECTIONS[index];
-        String zSign = Z_DIRECTIONS[index];
+        int x = (int) player.getX();
+        int y = (int) player.getY();
+        int z = (int) player.getZ();
 
-        String formatString = String.format("%%.%df%%s, %%.%df, %%.%df%%s %%S", PRECISION, PRECISION, PRECISION);
-        String coordinatesText = String.format(formatString, x, xSign, y, z, zSign, compass);
+        String direction;
+        String dirX;
+        String dirZ;
 
-        graphics.text(CLIENT.font, coordinatesText, X_PADDING, Y_PADDING, COLOR, TEXT_SHADOW);
-    }
+        float yaw = ((player.getYRot(1.0F) + 180) % 360 + 360) % 360 - 180;
 
-    private static int getMapIndex(double yaw) {
-        double normalizedYaw = (yaw + 180) % 360;
-        return (int) ((normalizedYaw + 22.5) / 45) % 8;
+        String[] directions = coordsConfig.getCurrentDirectionArray();
+        String pos = coordsConfig.dirFacingPos;
+        String neg = coordsConfig.dirFacingNeg;
+        String[] dirXs = {"", pos, pos, pos, "", neg, neg, neg};
+        String[] dirZs = {neg, neg, "", pos, pos, pos, "", neg};
+
+        yaw = (yaw + 180) % 360;
+        if (yaw < 0) yaw += 360;
+        int index = (int) ((yaw + 22.5) / 45) % 8;
+
+        direction = coordsConfig.dirText + " " + (directions.length > 0 ? directions[index] : "");
+        dirX = dirXs[index];
+        dirZ = dirZs[index];
+
+        String coordinates = String.format(coordsConfig.xText + x + dirX + coordsConfig.deliminator + coordsConfig.yText + y
+                + coordsConfig.deliminator + coordsConfig.zText + z + dirZ + direction);
+
+        graphics.text(client.font, replaceAnd(coordinates), X_PADDING, Y_PADDING, COLOR, TEXT_SHADOW);
     }
 }
