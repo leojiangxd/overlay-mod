@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import triangled.overlaymod.OverlayMod;
 import triangled.overlaymod.config.OverlayModConfig;
+import triangled.overlaymod.util.TextRenderUtil;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -15,7 +16,6 @@ public class ClockHUD {
     private static final int X_PADDING = 3;
     private static final int Y_PADDING = 3;
     private static final int COLOR = 0xFFFFFFFF;
-    private static final boolean TEXT_SHADOW = true;
 
     private static boolean sprintIntentActive = false;
 
@@ -28,7 +28,7 @@ public class ClockHUD {
         OverlayModConfig.ClockCategory clockConfig = config.clock;
         OverlayModConfig.SprintingCategory sprintingConfig = config.sprinting;
 
-        if (!(sprintingConfig.showSprinting || clockConfig.showClock) || client.gui.hud.isHidden()) {
+        if (!(sprintingConfig.visibility.showSprinting || clockConfig.visibility.showClock) || client.gui.hud.isHidden()) {
             return;
         }
         if (client.player == null)
@@ -39,23 +39,27 @@ public class ClockHUD {
 
         String combined = sprinting + formattedTime;
         int x = graphics.guiWidth() - client.font.width(combined) - X_PADDING;
-        graphics.text(client.font, combined, x, Y_PADDING, COLOR, TEXT_SHADOW);
+
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(x + clockConfig.positioning.xOffset, Y_PADDING + clockConfig.positioning.yOffset);
+        TextRenderUtil.drawText(graphics, client.font, combined, 0, 0, COLOR, clockConfig.style.textShadow);
+        graphics.pose().popMatrix();
     }
 
     private static String getFormattedTime(OverlayModConfig.ClockCategory clockConfig) {
-        if (!clockConfig.showClock)
+        if (!clockConfig.visibility.showClock)
             return "";
         try {
             LocalTime time = LocalTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(clockConfig.clockFormat);
-            return replaceAnd(clockConfig.clockText + time.format(formatter));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(clockConfig.text.clockFormat);
+            return replaceAnd(clockConfig.text.clockText + time.format(formatter));
         } catch (Exception ignored) {
             return "";
         }
     }
 
     private static String getSprintText(Minecraft client, OverlayModConfig.SprintingCategory sprintingConfig) {
-        if (!sprintingConfig.showSprinting)
+        if (!sprintingConfig.visibility.showSprinting)
             return "";
 
         boolean hasGuiOpen = client.gui.screen() != null;
@@ -63,6 +67,6 @@ public class ClockHUD {
             sprintIntentActive = client.options.keySprint.isDown();
         }
 
-        return replaceAnd(sprintIntentActive ? sprintingConfig.sprintingText : "");
+        return replaceAnd(sprintIntentActive ? sprintingConfig.text.sprintingText : "");
     }
 }

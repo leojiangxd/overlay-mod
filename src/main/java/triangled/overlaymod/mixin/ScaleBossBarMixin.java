@@ -1,6 +1,5 @@
 package triangled.overlaymod.mixin;
 
-import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.BossHealthOverlay;
@@ -15,7 +14,9 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import triangled.overlaymod.OverlayMod;
 import triangled.overlaymod.config.OverlayModConfig;
+import triangled.overlaymod.util.TextRenderUtil;
 
 import java.util.Map;
 import java.util.UUID;
@@ -36,10 +37,9 @@ public abstract class ScaleBossBarMixin {
 
     @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
     private void onExtractRenderState(GuiGraphicsExtractor graphics, CallbackInfo ci) {
-        OverlayModConfig.BossBarCategory config =
-                AutoConfig.getConfigHolder(OverlayModConfig.class).getConfig().bossbar;
+        OverlayModConfig.BossBarCategory config = OverlayMod.config.bossbar;
 
-        if (config.shouldScaleBossBars) {
+        if (config.visibility.shouldScaleBossBars) {
             extractScaledBossBars(graphics, config);
             ci.cancel();
         }
@@ -56,9 +56,9 @@ public abstract class ScaleBossBarMixin {
 
         float centerX = graphics.guiWidth() / 2.0F;
         matrixStack.translate(centerX, 0.0F);
-        float scale = config.scale;
+        float scale = config.positioning.scale;
         matrixStack.scale(scale, scale);
-        matrixStack.translate(-centerX, config.yOffset);
+        matrixStack.translate(-centerX + config.positioning.xOffset, config.positioning.yOffset);
 
         int screenWidth = graphics.guiWidth();
         int j = 12;
@@ -72,10 +72,10 @@ public abstract class ScaleBossBarMixin {
             int nameWidth = minecraft.font.width(name);
             int nameX = screenWidth / 2 - nameWidth / 2;
             int nameY = y - 9;
-            graphics.text(minecraft.font, name, nameX, nameY, 0xFFFFFFFF, true);
+            TextRenderUtil.drawText(graphics, minecraft.font, name, nameX, nameY, 0xFFFFFFFF, config.style.nameTextShadow);
 
             j += 10 + 9;
-            if (j >= (graphics.guiHeight() / scale) / config.maxHeight) {
+            if (j >= (graphics.guiHeight() / scale) / config.positioning.maxHeight) {
                 break;
             }
         }

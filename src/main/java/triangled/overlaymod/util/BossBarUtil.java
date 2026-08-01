@@ -1,11 +1,11 @@
 package triangled.overlaymod.util;
 
-import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Hud;
 import net.minecraft.client.gui.components.BossHealthOverlay;
+import triangled.overlaymod.OverlayMod;
 import triangled.overlaymod.config.OverlayModConfig;
 import triangled.overlaymod.mixin.BossHealthOverlayAccessor;
 import triangled.overlaymod.mixin.HudAccessor;
@@ -26,12 +26,11 @@ public class BossBarUtil {
             return 0;
         }
 
-        OverlayModConfig.BossBarCategory config =
-                AutoConfig.getConfigHolder(OverlayModConfig.class).getConfig().bossbar;
+        OverlayModConfig.BossBarCategory config = OverlayMod.config.bossbar;
 
         int bossBarOffset = 12;
-        float scale = config.shouldScaleBossBars ? config.scale : 1.0F;
-        int maxHeight = config.shouldScaleBossBars ? config.maxHeight : 3;
+        float scale = config.visibility.shouldScaleBossBars ? config.positioning.scale : 1.0F;
+        int maxHeight = config.visibility.shouldScaleBossBars ? config.positioning.maxHeight : 3;
 
         for (int i = 0; i < numberOfBossBars; i++) {
             bossBarOffset += 19;

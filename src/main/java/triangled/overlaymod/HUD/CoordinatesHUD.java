@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import triangled.overlaymod.OverlayMod;
 import triangled.overlaymod.config.OverlayModConfig;
+import triangled.overlaymod.util.TextRenderUtil;
 
 import static triangled.overlaymod.config.OverlayModConfig.replaceAnd;
 
@@ -13,7 +14,6 @@ public class CoordinatesHUD {
     private static final int X_PADDING = 3;
     private static final int Y_PADDING = 3;
     private static final int COLOR = 0xFFFFFFFF;
-    private static final boolean TEXT_SHADOW = true;
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
         Minecraft client = Minecraft.getInstance();
@@ -21,7 +21,7 @@ public class CoordinatesHUD {
         if (config == null) return;
 
         OverlayModConfig.CoordinatesCategory coordsConfig = config.coordinates;
-        if (!coordsConfig.showCoordinates || client.gui.hud.isHidden()) return;
+        if (!coordsConfig.visibility.showCoordinates || client.gui.hud.isHidden()) return;
 
         LocalPlayer player = client.player;
         if (player == null || client.level == null) return;
@@ -36,9 +36,8 @@ public class CoordinatesHUD {
 
         float yaw = ((player.getYRot(1.0F) + 180) % 360 + 360) % 360 - 180;
 
-        String[] directions = coordsConfig.getCurrentDirectionArray();
-        String pos = coordsConfig.dirFacingPos;
-        String neg = coordsConfig.dirFacingNeg;
+        String pos = coordsConfig.text.dirFacingPos;
+        String neg = coordsConfig.text.dirFacingNeg;
         String[] dirXs = {"", pos, pos, pos, "", neg, neg, neg};
         String[] dirZs = {neg, neg, "", pos, pos, pos, "", neg};
 
@@ -46,13 +45,16 @@ public class CoordinatesHUD {
         if (yaw < 0) yaw += 360;
         int index = (int) ((yaw + 22.5) / 45) % 8;
 
-        direction = coordsConfig.dirText + " " + (directions.length > 0 ? directions[index] : "");
+        direction = coordsConfig.visibility.showDirection ? coordsConfig.text.dirText + " " + coordsConfig.getDirectionText(index) : "";
         dirX = dirXs[index];
         dirZ = dirZs[index];
 
-        String coordinates = String.format(coordsConfig.xText + x + dirX + coordsConfig.deliminator + coordsConfig.yText + y
-                + coordsConfig.deliminator + coordsConfig.zText + z + dirZ + direction);
+        String coordinates = String.format(coordsConfig.text.xText + x + dirX + coordsConfig.text.deliminator + coordsConfig.text.yText + y
+                + coordsConfig.text.deliminator + coordsConfig.text.zText + z + dirZ + direction);
 
-        graphics.text(client.font, replaceAnd(coordinates), X_PADDING, Y_PADDING, COLOR, TEXT_SHADOW);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(X_PADDING + coordsConfig.positioning.xOffset, Y_PADDING + coordsConfig.positioning.yOffset);
+        TextRenderUtil.drawText(graphics, client.font, replaceAnd(coordinates), 0, 0, COLOR, coordsConfig.style.textShadow);
+        graphics.pose().popMatrix();
     }
 }
