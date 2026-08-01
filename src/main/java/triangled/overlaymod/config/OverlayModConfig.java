@@ -140,8 +140,11 @@ public class OverlayModConfig implements ConfigData {
         }
 
         public static class Text {
-            public String dayText = "d";
-            public String hourText = "h";
+            public String secondsFormat = "0:ss";
+            public String minutesFormat = "m:ss";
+            public String minutesFormatLong = "m\\m";
+            public String hourFormat = "h\\h";
+            public String dayFormat = "d\\d";
             public String amplifierText = "&f";
             public String durationText = "&f";
             public String ambientAmplifierText = "&e";
@@ -168,9 +171,9 @@ public class OverlayModConfig implements ConfigData {
         }
 
         public static class Positioning {
-            public int effectWidth = 29;
-            public int negativeEffectYOffset = 32;
-            public int bossBarInitialYOffset = 0;
+            public int effectGap = 1;
+            public float negativeEffectYOffset = 8f;
+            public float bossBarInitialYOffset = 0f;
             public float statusEffectXOffset = 0f;
             public float statusEffectYOffset = 0f;
             public float amplifierScale = 1.0f;

@@ -29,6 +29,7 @@ import net.minecraft.resources.Identifier;
 
 import triangled.overlaymod.OverlayMod;
 import triangled.overlaymod.util.BossBarUtil;
+import triangled.overlaymod.util.DurationFormatUtil;
 import triangled.overlaymod.util.TextRenderUtil;
 import triangled.overlaymod.config.OverlayModConfig;
 
@@ -65,11 +66,11 @@ public class StatusEffectOverlayMixin {
                 .toList();
 
         int screenWidth = graphics.guiWidth();
-        int effectWidth = statusEffectConfig.positioning.effectWidth;
+        int effectStride = EFFECT_ICON_SIZE + statusEffectConfig.positioning.effectGap;
         int bossBarOffset = BossBarUtil.getBossBarOffset(graphics, minecraft);
-        int statusEffectOffsetY = bossBarOffset -
-                (bossBarOffset + statusEffectConfig.positioning.bossBarInitialYOffset > 0 ? statusEffectConfig.positioning.bossBarInitialYOffset
-                        : 0);
+        float bossBarInitialYOffset = BOSS_BAR_INITIAL_Y_OFFSET + statusEffectConfig.positioning.bossBarInitialYOffset;
+        float statusEffectOffsetY = bossBarOffset -
+                (bossBarOffset + bossBarInitialYOffset > 0 ? bossBarInitialYOffset : 0);
         List<Runnable> renderTasks = new ArrayList<>();
 
         graphics.pose().pushMatrix();
@@ -84,24 +85,25 @@ public class StatusEffectOverlayMixin {
                     .filter(effect -> !effect.getEffect().value().isBeneficial())
                     .collect(Collectors.toList());
 
-            int beneficialOffsetX = calculateOffsetX(screenWidth, beneficialEffects.size(), effectWidth);
-            int nonBeneficialOffsetX = calculateOffsetX(screenWidth, nonBeneficialEffects.size(), effectWidth);
+            float beneficialOffsetX = calculateOffsetX(screenWidth, beneficialEffects.size(), effectStride);
+            float nonBeneficialOffsetX = calculateOffsetX(screenWidth, nonBeneficialEffects.size(), effectStride);
 
-            int nonBeneficialOffsetY = beneficialEffects.isEmpty()
+            float nonBeneficialOffsetY = beneficialEffects.isEmpty()
                     ? statusEffectOffsetY
-                    : statusEffectConfig.positioning.negativeEffectYOffset + statusEffectOffsetY;
+                    : statusEffectOffsetY + EFFECT_ICON_SIZE;
+            float nonBeneficialGap = beneficialEffects.isEmpty() ? 0f : statusEffectConfig.positioning.negativeEffectYOffset;
 
-            renderEffects(minecraft, graphics, beneficialEffects, beneficialOffsetX, statusEffectOffsetY, renderTasks);
+            renderEffects(minecraft, graphics, beneficialEffects, beneficialOffsetX, statusEffectOffsetY, 0f, effectStride, renderTasks);
             renderEffects(minecraft, graphics, nonBeneficialEffects, nonBeneficialOffsetX, nonBeneficialOffsetY,
-                    renderTasks);
-            renderTimers(minecraft, graphics, beneficialEffects, beneficialOffsetX, statusEffectOffsetY, renderTasks);
+                    nonBeneficialGap, effectStride, renderTasks);
+            renderTimers(minecraft, graphics, beneficialEffects, beneficialOffsetX, statusEffectOffsetY, 0f, effectStride, renderTasks);
             renderTimers(minecraft, graphics, nonBeneficialEffects, nonBeneficialOffsetX, nonBeneficialOffsetY,
-                    renderTasks);
+                    nonBeneficialGap, effectStride, renderTasks);
         } else {
-            int combinedOffsetX = calculateOffsetX(screenWidth, effects.size(), effectWidth);
+            float combinedOffsetX = calculateOffsetX(screenWidth, effects.size(), effectStride);
 
-            renderEffects(minecraft, graphics, effects, combinedOffsetX, statusEffectOffsetY, renderTasks);
-            renderTimers(minecraft, graphics, effects, combinedOffsetX, statusEffectOffsetY, renderTasks);
+            renderEffects(minecraft, graphics, effects, combinedOffsetX, statusEffectOffsetY, 0f, effectStride, renderTasks);
+            renderTimers(minecraft, graphics, effects, combinedOffsetX, statusEffectOffsetY, 0f, effectStride, renderTasks);
         }
 
         renderTasks.forEach(Runnable::run);
@@ -110,33 +112,36 @@ public class StatusEffectOverlayMixin {
     }
 
     @Unique
-    private static final int EFFECT_ICON_WIDTH = 24;
+    private static final int EFFECT_ICON_SIZE = 24;
 
     @Unique
-    private int calculateOffsetX(int screenWidth, int effectCount, int effectWidth) {
+    private static final float BOSS_BAR_INITIAL_Y_OFFSET = -1f;
+
+    @Unique
+    private float calculateOffsetX(int screenWidth, int effectCount, int effectStride) {
         if (effectCount <= 0) {
-            return screenWidth / 2;
+            return screenWidth / 2f;
         }
 
-        int totalEffectsWidth = (effectCount - 1) * effectWidth + EFFECT_ICON_WIDTH;
-        return (screenWidth - totalEffectsWidth) / 2;
+        int totalEffectsWidth = (effectCount - 1) * effectStride + EFFECT_ICON_SIZE;
+        return (screenWidth - totalEffectsWidth) / 2f;
     }
 
     @Unique
     private void renderEffects(Minecraft client, GuiGraphicsExtractor graphics, List<MobEffectInstance> effects,
-            int OffsetX, int verticalOffset, List<Runnable> renderTasks) {
+            float OffsetX, float verticalOffset, float yGap, int effectStride, List<Runnable> renderTasks) {
         for (int i = 0; i < effects.size(); i++) {
             MobEffectInstance statusEffectInstance = effects.get(i);
             Holder<MobEffect> effectHolder = statusEffectInstance.getEffect();
-            int currentX = OffsetX + i * statusEffectConfig.positioning.effectWidth;
-            int currentY = verticalOffset;
+            float currentX = OffsetX + i * effectStride;
+            float currentY = verticalOffset;
 
             if (client.isDemo()) {
                 currentY += 15;
             }
 
             float f = 1.0F;
-            int finalY = currentY;
+            float finalY = currentY;
             if (statusEffectInstance.endsWithin((statusEffectConfig.text.expirationDuration + 1) * 20)) {
                 int m = statusEffectInstance.getDuration();
                 int n = 10 - m / 20;
@@ -145,39 +150,53 @@ public class StatusEffectOverlayMixin {
                                 * Mth.clamp((float) n / 10.0F * 0.25F, 0.0F, 0.25F);
             }
 
+            int blitX = Math.round(currentX);
+            int blitY = Math.round(finalY);
+
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(0, yGap);
+
             if (statusEffectConfig.visibility.renderBackground) {
                 if (statusEffectInstance.isAmbient()) {
                     graphics.blitSprite(RenderPipelines.GUI_TEXTURED,
-                            Identifier.withDefaultNamespace("hud/effect_background_ambient"), currentX, finalY, 24, 24);
+                            Identifier.withDefaultNamespace("hud/effect_background_ambient"), blitX, blitY, 24, 24);
                 } else {
                     graphics.blitSprite(RenderPipelines.GUI_TEXTURED,
-                            Identifier.withDefaultNamespace("hud/effect_background"), currentX, finalY, 24, 24);
+                            Identifier.withDefaultNamespace("hud/effect_background"), blitX, blitY, 24, 24);
                 }
             }
+
+            graphics.pose().popMatrix();
 
             Identifier spriteId = Hud.getMobEffectSprite(effectHolder);
             float finalAlpha = f;
             renderTasks.add(() -> {
+                graphics.pose().pushMatrix();
+                graphics.pose().translate(0, yGap);
                 int k = ARGB.white(finalAlpha);
-                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, spriteId, currentX + 3, finalY + 3, 18, 18, k);
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, spriteId, blitX + 3, blitY + 3, 18, 18, k);
+                graphics.pose().popMatrix();
             });
         }
     }
 
     @Unique
     private void renderTimers(Minecraft client, GuiGraphicsExtractor graphics, List<MobEffectInstance> effects,
-            int OffsetX, int verticalOffset, List<Runnable> renderTasks) {
+            float OffsetX, float verticalOffset, float yGap, int effectStride, List<Runnable> renderTasks) {
         for (int i = 0; i < effects.size(); i++) {
             MobEffectInstance statusEffectInstance = effects.get(i);
-            int currentX = OffsetX + i * statusEffectConfig.positioning.effectWidth;
-            int currentY = verticalOffset - 3;
+            float currentX = OffsetX + i * effectStride;
+            float currentY = verticalOffset - 3;
 
             if (client.isDemo()) {
                 currentY += 15;
             }
 
-            int finalY = currentY;
+            float finalY = currentY;
             renderTasks.add(() -> {
+                graphics.pose().pushMatrix();
+                graphics.pose().translate(0, yGap);
+
                 if (statusEffectConfig.visibility.renderAmplifier) {
                     boolean subscriptAmplifiers = statusEffectConfig.visibility.subscriptAmplifiers;
                     String amplifierDigits = String.valueOf(statusEffectInstance.getAmplifier() + 1);
@@ -233,6 +252,8 @@ public class StatusEffectOverlayMixin {
 
                     graphics.pose().popMatrix();
                 }
+
+                graphics.pose().popMatrix();
             });
         }
     }
@@ -258,15 +279,18 @@ public class StatusEffectOverlayMixin {
         } else if (totalSeconds / (86400 * 99) > 0) {
             return "";
         } else if (totalSeconds / 86400 > 0) {
-            return ambientColor + totalSeconds / 86400 + statusEffectConfig.text.dayText;
+            return ambientColor + DurationFormatUtil.format(totalSeconds, statusEffectConfig.text.dayFormat);
         } else if (totalSeconds / 3600 > 0) {
-            return ambientColor + totalSeconds / 3600 + statusEffectConfig.text.hourText;
-        } else if ((totalSeconds % 3600) / 60 > 0) {
-            return ambientColor + String.format("%d:%02d", (totalSeconds % 3600) / 60, totalSeconds % 60);
+            return ambientColor + DurationFormatUtil.format(totalSeconds, statusEffectConfig.text.hourFormat);
+        } else if (totalSeconds / 60 >= 10) {
+            return ambientColor + DurationFormatUtil.format(totalSeconds, statusEffectConfig.text.minutesFormatLong);
+        } else if (totalSeconds / 60 > 0) {
+            return ambientColor + DurationFormatUtil.format(totalSeconds, statusEffectConfig.text.minutesFormat);
         } else {
             return totalSeconds < (statusEffectConfig.text.expirationDuration + 1)
-                    ? ambientColor + statusEffectConfig.text.expirationText + String.format("0:%02d", totalSeconds % 60)
-                    : ambientColor + String.format("0:%02d", totalSeconds % 60);
+                    ? ambientColor + statusEffectConfig.text.expirationText
+                            + DurationFormatUtil.format(totalSeconds, statusEffectConfig.text.secondsFormat)
+                    : ambientColor + DurationFormatUtil.format(totalSeconds, statusEffectConfig.text.secondsFormat);
         }
     }
 
