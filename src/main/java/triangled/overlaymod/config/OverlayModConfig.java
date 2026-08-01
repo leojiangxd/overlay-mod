@@ -33,12 +33,12 @@ public class OverlayModConfig implements ConfigData {
     public EquipmentCategory equipment = new EquipmentCategory();
 
     @ConfigEntry.Gui.TransitiveObject
-    @ConfigEntry.Category("bossbar")
-    public BossBarCategory bossbar = new BossBarCategory();
-
-    @ConfigEntry.Gui.TransitiveObject
     @ConfigEntry.Category("durability")
     public DurabilityCategory durability = new DurabilityCategory();
+
+    @ConfigEntry.Gui.TransitiveObject
+    @ConfigEntry.Category("bossbar")
+    public BossBarCategory bossbar = new BossBarCategory();
 
     @Config(name = "coordinates")
     public static class CoordinatesCategory {
