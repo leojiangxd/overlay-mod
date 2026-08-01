@@ -58,7 +58,7 @@ public abstract class ScaleBossBarMixin {
         matrixStack.translate(centerX, 0.0F);
         float scale = config.positioning.scale;
         matrixStack.scale(scale, scale);
-        matrixStack.translate(-centerX + config.positioning.xOffset, config.positioning.yOffset);
+        matrixStack.translate(-centerX + config.positioning.xOffset, -config.positioning.yOffset);
 
         int screenWidth = graphics.guiWidth();
         int j = 12;

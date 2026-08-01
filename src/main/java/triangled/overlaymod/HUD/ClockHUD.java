@@ -43,7 +43,7 @@ public class ClockHUD {
         int x = graphics.guiWidth() - combinedWidth - X_PADDING;
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(x + clockConfig.positioning.xOffset, Y_PADDING + clockConfig.positioning.yOffset);
+        graphics.pose().translate(x + clockConfig.positioning.xOffset, Y_PADDING - clockConfig.positioning.yOffset);
 
         int cursorX = 0;
         cursorX = drawSprintPiece(graphics, client, sprinting, sprintingConfig, clockConfig, cursorX);
@@ -58,7 +58,7 @@ public class ClockHUD {
         if (text.isEmpty()) return cursorX;
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(cursorX + sprintingConfig.positioning.xOffset, sprintingConfig.positioning.yOffset);
+        graphics.pose().translate(cursorX + sprintingConfig.positioning.xOffset, -sprintingConfig.positioning.yOffset);
         TextRenderUtil.drawText(graphics, client.font, text, 0, 0, sprintingConfig.style.color, clockConfig.style.textShadow);
         graphics.pose().popMatrix();
 

@@ -172,7 +172,7 @@ public class OverlayModConfig implements ConfigData {
 
         public static class Positioning {
             public int effectGap = 1;
-            public float negativeEffectYOffset = 8f;
+            public float negativeEffectYOffset = -8f;
             public float bossBarInitialYOffset = 0f;
             public float statusEffectXOffset = 0f;
             public float statusEffectYOffset = 0f;
@@ -301,7 +301,7 @@ public class OverlayModConfig implements ConfigData {
         public static class Positioning {
             public float scale = 0.5F;
             public float xOffset = 0f;
-            public float yOffset = 3.0F;
+            public float yOffset = -3.0F;
             public int maxHeight = 6;
         }
     }

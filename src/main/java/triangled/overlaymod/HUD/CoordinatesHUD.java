@@ -48,7 +48,7 @@ public class CoordinatesHUD {
         OverlayModConfig.CoordinatesCategory.Positioning pos = coordsConfig.positioning;
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(X_PADDING + pos.xOffset, Y_PADDING + pos.yOffset);
+        graphics.pose().translate(X_PADDING + pos.xOffset, Y_PADDING - pos.yOffset);
 
         int cursorX = 0;
         cursorX = drawPiece(graphics, client, coordsConfig, coordsConfig.text.xText + x, style.xColor, cursorX);
@@ -88,7 +88,7 @@ public class CoordinatesHUD {
         OverlayModConfig.CoordinatesCategory.Positioning pos = coordsConfig.positioning;
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(cursorX + pos.dirXOffset, pos.dirYOffset);
+        graphics.pose().translate(cursorX + pos.dirXOffset, -pos.dirYOffset);
         TextRenderUtil.drawText(graphics, client.font, text, 0, 0, coordsConfig.style.dirColor, coordsConfig.style.textShadow);
         graphics.pose().popMatrix();
     }

@@ -105,7 +105,7 @@ public class DurabilityTextMixin {
             cursorX += minecraft.font.width(prefix);
         }
 
-        int exponentY = Math.round(1f + config.positioning.exponentYOffset);
+        int exponentY = Math.round(1f - config.positioning.exponentYOffset);
         TextRenderUtil.drawText(graphics, minecraft.font, "ᴇ", cursorX, exponentY, color, config.style.textShadow);
         cursorX += minecraft.font.width("ᴇ");
 

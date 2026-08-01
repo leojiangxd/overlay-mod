@@ -74,7 +74,7 @@ public class StatusEffectOverlayMixin {
         List<Runnable> renderTasks = new ArrayList<>();
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(statusEffectConfig.positioning.statusEffectXOffset, statusEffectConfig.positioning.statusEffectYOffset);
+        graphics.pose().translate(statusEffectConfig.positioning.statusEffectXOffset, -statusEffectConfig.positioning.statusEffectYOffset);
 
         if (statusEffectConfig.visibility.separateNegativeEffects) {
             List<MobEffectInstance> beneficialEffects = effects.stream()
@@ -91,7 +91,7 @@ public class StatusEffectOverlayMixin {
             float nonBeneficialOffsetY = beneficialEffects.isEmpty()
                     ? statusEffectOffsetY
                     : statusEffectOffsetY + EFFECT_ICON_SIZE;
-            float nonBeneficialGap = beneficialEffects.isEmpty() ? 0f : statusEffectConfig.positioning.negativeEffectYOffset;
+            float nonBeneficialGap = beneficialEffects.isEmpty() ? 0f : -statusEffectConfig.positioning.negativeEffectYOffset;
 
             renderEffects(minecraft, graphics, beneficialEffects, beneficialOffsetX, statusEffectOffsetY, 0f, effectStride, renderTasks);
             renderEffects(minecraft, graphics, nonBeneficialEffects, nonBeneficialOffsetX, nonBeneficialOffsetY,
@@ -210,7 +210,7 @@ public class StatusEffectOverlayMixin {
                         float amplifierX = currentX + (24 - scale * amplifierLength) / 2f
                                 + scale * (0.5f + statusEffectConfig.positioning.amplifierXOffset);
                         float amplifierY = finalY + 11 + (client.font.lineHeight - scale * client.font.lineHeight) / 2f
-                                + scale * (styleYOffset + statusEffectConfig.positioning.amplifierYOffset);
+                                + scale * (styleYOffset - statusEffectConfig.positioning.amplifierYOffset);
 
                         graphics.pose().pushMatrix();
                         graphics.pose().translate(amplifierX, amplifierY);
@@ -237,7 +237,7 @@ public class StatusEffectOverlayMixin {
                     float durationX = currentX + (24 - scale * durationLength) / 2f
                             + scale * (0.5f + statusEffectConfig.positioning.durationXOffset);
                     float durationY = finalY + 26 + (client.font.lineHeight - scale * client.font.lineHeight) / 2f
-                            + scale * (1.0f + statusEffectConfig.positioning.durationYOffset);
+                            + scale * (1.0f - statusEffectConfig.positioning.durationYOffset);
 
                     graphics.pose().pushMatrix();
                     graphics.pose().translate(durationX, durationY);
