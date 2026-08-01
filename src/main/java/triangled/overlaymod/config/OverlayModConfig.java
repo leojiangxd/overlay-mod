@@ -95,11 +95,27 @@ public class OverlayModConfig implements ConfigData {
         public static class Style {
             @ConfigEntry.Gui.EnumHandler(option = EnumDisplayOption.BUTTON)
             public TextShadow textShadow = TextShadow.SHADOW;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int xColor = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int yColor = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int zColor = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int dirFacingPosColor = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int dirFacingNegColor = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int dirColor = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int deliminatorColor = 0xFFFFFFFF;
         }
 
         public static class Positioning {
             public float xOffset = 0f;
             public float yOffset = 0f;
+            public float dirXOffset = 0f;
+            public float dirYOffset = 0f;
         }
     }
 
@@ -118,7 +134,7 @@ public class OverlayModConfig implements ConfigData {
             public boolean showStatusEffects = true;
             public boolean renderBackground = false;
             public boolean separateNegativeEffects = true;
-            public boolean superScriptAmplifiers = true;
+            public boolean subscriptAmplifiers = true;
             public boolean renderAmplifier = true;
             public boolean renderDuration = true;
         }
@@ -139,6 +155,16 @@ public class OverlayModConfig implements ConfigData {
             public TextShadow amplifierTextShadow = TextShadow.FOUR_DIRECTION;
             @ConfigEntry.Gui.EnumHandler(option = EnumDisplayOption.BUTTON)
             public TextShadow durationTextShadow = TextShadow.SHADOW;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int amplifierColor = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int ambientAmplifierColor = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int durationColor = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int ambientDurationColor = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int expirationColor = 0xFFFFFFFF;
         }
 
         public static class Positioning {
@@ -148,11 +174,11 @@ public class OverlayModConfig implements ConfigData {
             public float statusEffectXOffset = 0f;
             public float statusEffectYOffset = 0f;
             public float amplifierScale = 1.0f;
-            public float amplifierXOffset = 1.0f;
-            public float amplifierYOffset = 1.5f;
+            public float amplifierXOffset = 0f;
+            public float amplifierYOffset = 0f;
             public float durationScale = 1.0f;
-            public float durationXOffset = 0;
-            public float durationYOffset = 0;
+            public float durationXOffset = 0f;
+            public float durationYOffset = 0f;
         }
     }
 
@@ -188,6 +214,10 @@ public class OverlayModConfig implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
         public Visibility visibility = new Visibility();
         @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+        public Positioning positioning = new Positioning();
+        @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+        public Style style = new Style();
+        @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
         public Text text = new Text();
 
         public static class Visibility {
@@ -195,7 +225,17 @@ public class OverlayModConfig implements ConfigData {
         }
 
         public static class Text {
-            public String sprintingText = "ꜱᴘʀɪɴᴛɪɴɢ &e| ";
+            public String sprintingText = "ꜱᴘʀɪɴᴛɪɴɢ";
+        }
+
+        public static class Style {
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int color = 0xFFFFFFFF;
+        }
+
+        public static class Positioning {
+            public float xOffset = 0f;
+            public float yOffset = 0f;
         }
     }
 
@@ -217,11 +257,16 @@ public class OverlayModConfig implements ConfigData {
         public static class Text {
             public String clockText = "&r";
             public String clockFormat = "h:mm";
+            public String deliminator = "&e | ";
         }
 
         public static class Style {
             @ConfigEntry.Gui.EnumHandler(option = EnumDisplayOption.BUTTON)
             public TextShadow textShadow = TextShadow.SHADOW;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int color = 0xFFFFFFFF;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int deliminatorColor = 0xFFFFFFFF;
         }
 
         public static class Positioning {
@@ -246,6 +291,8 @@ public class OverlayModConfig implements ConfigData {
         public static class Style {
             @ConfigEntry.Gui.EnumHandler(option = EnumDisplayOption.BUTTON)
             public TextShadow nameTextShadow = TextShadow.SHADOW;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int nameColor = 0xFFFFFFFF;
         }
 
         public static class Positioning {
@@ -261,27 +308,40 @@ public class OverlayModConfig implements ConfigData {
         @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
         public Visibility visibility = new Visibility();
         @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+        public Format format = new Format();
+        @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
         public Positioning positioning = new Positioning();
         @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
         public Style style = new Style();
 
         public static class Visibility {
-            public boolean showDurabilityText = true;
-            public boolean showDurabilityBar = true;
-            public boolean showFullDurability = false;
-            public boolean durabilityAsPercentage = false;
+            public boolean showText = true;
+            public boolean showBar = true;
+            public boolean showAtFullDurability = false;
+        }
+
+        public static class Format {
+            public boolean showAsPercentage = false;
+            public boolean useSubscript = true;
+            public int normalDigitLimit = 4;
+            public int subscriptDigitLimit = 5;
         }
 
         public static class Style {
             @ConfigEntry.Gui.EnumHandler(option = EnumDisplayOption.BUTTON)
             public TextShadow textShadow = TextShadow.SHADOW;
+            public boolean useCustomColor = false;
+            @ConfigEntry.ColorPicker(allowAlpha = true)
+            public int color = 0xFFFFFFFF;
         }
 
         public static class Positioning {
             @ConfigEntry.Gui.EnumHandler(option = EnumDisplayOption.BUTTON)
             public TextAlignment alignment = TextAlignment.RIGHT;
-            public float durabilityXOffset = 0f;
-            public float durabilityYOffset = 0f;
+            public float xOffset = 0f;
+            public float yOffset = 0f;
+            public float subscriptYOffset = 0f;
+            public float exponentYOffset = 0f;
         }
 
         public enum TextAlignment {

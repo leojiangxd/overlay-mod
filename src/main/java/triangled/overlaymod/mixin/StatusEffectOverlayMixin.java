@@ -179,30 +179,32 @@ public class StatusEffectOverlayMixin {
             int finalY = currentY;
             renderTasks.add(() -> {
                 if (statusEffectConfig.visibility.renderAmplifier) {
+                    boolean subscriptAmplifiers = statusEffectConfig.visibility.subscriptAmplifiers;
+                    String amplifierDigits = String.valueOf(statusEffectInstance.getAmplifier() + 1);
                     String amplifier = replaceAnd(statusEffectInstance.getAmplifier() > 0
-                            ? (statusEffectConfig.visibility.superScriptAmplifiers
-                                    ? convertToSuperscript(String.valueOf(statusEffectInstance.getAmplifier() + 1))
-                                    : String.valueOf(statusEffectInstance.getAmplifier() + 1))
+                            ? (subscriptAmplifiers ? convertToSubscript(amplifierDigits) : amplifierDigits)
                             : "");
                     if (!amplifier.isEmpty()) {
                         int amplifierLength = client.font.width(amplifier);
-                        int amplifierX = currentX + (24 - amplifierLength) / 2;
-                        int amplifierY = finalY + 11;
+                        float scale = statusEffectConfig.positioning.amplifierScale;
+                        float styleYOffset = subscriptAmplifiers ? -1.5f : 0f;
+                        float amplifierX = currentX + (24 - scale * amplifierLength) / 2f
+                                + scale * (0.5f + statusEffectConfig.positioning.amplifierXOffset);
+                        float amplifierY = finalY + 11 + (client.font.lineHeight - scale * client.font.lineHeight) / 2f
+                                + scale * (styleYOffset + statusEffectConfig.positioning.amplifierYOffset);
 
                         graphics.pose().pushMatrix();
-                        graphics.pose().translate(amplifierX + amplifierLength / 2.0f,
-                                amplifierY + client.font.lineHeight / 2.0f);
-                        graphics.pose().scale(statusEffectConfig.positioning.amplifierScale, statusEffectConfig.positioning.amplifierScale);
-                        graphics.pose().translate(statusEffectConfig.positioning.amplifierXOffset,
-                                statusEffectConfig.positioning.amplifierYOffset);
-                        graphics.pose().translate(-(amplifierX + amplifierLength / 2.0f),
-                                -(amplifierY + client.font.lineHeight / 2.0f));
+                        graphics.pose().translate(amplifierX, amplifierY);
+                        graphics.pose().scale(scale, scale);
 
                         String finalAmplifier = replaceAnd(
                                 statusEffectInstance.isAmbient() ? statusEffectConfig.text.ambientAmplifierText
                                         : statusEffectConfig.text.amplifierText)
                                 + amplifier;
-                        TextRenderUtil.drawText(graphics, client.font, finalAmplifier, amplifierX, amplifierY, 0xFFFFFFFF, statusEffectConfig.style.amplifierTextShadow);
+                        int amplifierColor = statusEffectInstance.isAmbient()
+                                ? statusEffectConfig.style.ambientAmplifierColor
+                                : statusEffectConfig.style.amplifierColor;
+                        TextRenderUtil.drawText(graphics, client.font, finalAmplifier, 0, 0, amplifierColor, statusEffectConfig.style.amplifierTextShadow);
 
                         graphics.pose().popMatrix();
                     }
@@ -212,23 +214,38 @@ public class StatusEffectOverlayMixin {
                     String duration = replaceAnd(
                             statusEffectConfig.text.durationText + getDurationAsString(statusEffectInstance));
                     int durationLength = client.font.width(duration);
-                    int durationX = currentX + (24 - durationLength) / 2;
-                    int durationY = finalY + 26;
+                    float scale = statusEffectConfig.positioning.durationScale;
+                    float durationX = currentX + (24 - scale * durationLength) / 2f
+                            + scale * (0.5f + statusEffectConfig.positioning.durationXOffset);
+                    float durationY = finalY + 26 + (client.font.lineHeight - scale * client.font.lineHeight) / 2f
+                            + scale * (1.0f + statusEffectConfig.positioning.durationYOffset);
 
                     graphics.pose().pushMatrix();
-                    graphics.pose().translate(durationX + durationLength / 2.0f,
-                            durationY + client.font.lineHeight / 2.0f);
-                    graphics.pose().scale(statusEffectConfig.positioning.durationScale, statusEffectConfig.positioning.durationScale);
-                    graphics.pose().translate(statusEffectConfig.positioning.durationXOffset, statusEffectConfig.positioning.durationYOffset);
-                    graphics.pose().translate(-(durationX + durationLength / 2.0f),
-                            -(durationY + client.font.lineHeight / 2.0f));
+                    graphics.pose().translate(durationX, durationY);
+                    graphics.pose().scale(scale, scale);
 
-                    TextRenderUtil.drawText(graphics, client.font, duration, durationX, durationY, 0xFFFFFFFF, statusEffectConfig.style.durationTextShadow);
+                    int durationColor = isExpiringSoon(statusEffectInstance)
+                            ? statusEffectConfig.style.expirationColor
+                            : statusEffectInstance.isAmbient()
+                                    ? statusEffectConfig.style.ambientDurationColor
+                                    : statusEffectConfig.style.durationColor;
+                    TextRenderUtil.drawText(graphics, client.font, duration, 0, 0, durationColor, statusEffectConfig.style.durationTextShadow);
 
                     graphics.pose().popMatrix();
                 }
             });
         }
+    }
+
+    @Unique
+    private boolean isExpiringSoon(MobEffectInstance effect) {
+        long totalSeconds = effect.getDuration() / 20;
+        if (effect.getDuration() <= -1) return false;
+        if (totalSeconds / (86400 * 99) > 0) return false;
+        if (totalSeconds / 86400 > 0) return false;
+        if (totalSeconds / 3600 > 0) return false;
+        if ((totalSeconds % 3600) / 60 > 0) return false;
+        return totalSeconds < (statusEffectConfig.text.expirationDuration + 1);
     }
 
     @Unique
@@ -254,17 +271,18 @@ public class StatusEffectOverlayMixin {
     }
 
     @Unique
-    private String convertToSuperscript(String input) {
-        String[] superscriptDigits = { "⁰", "¹", "²", "³", "⁴", "⁵", "⁶", "⁷", "⁸", "⁹" };
+    private String convertToSubscript(String input) {
+        String[] subscriptDigits = { "₀", "₁", "₂", "₃", "₄", "₅", "₆", "₇", "₈", "₉" };
         StringBuilder result = new StringBuilder();
         for (char c : input.toCharArray()) {
             if (Character.isDigit(c)) {
                 int digit = c - '0';
-                result.append(superscriptDigits[digit]);
+                result.append(subscriptDigits[digit]);
             } else {
                 result.append(c);
             }
         }
         return result.toString();
     }
+
 }
