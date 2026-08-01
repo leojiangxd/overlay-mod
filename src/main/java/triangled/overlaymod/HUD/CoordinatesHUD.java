@@ -51,15 +51,12 @@ public class CoordinatesHUD {
         graphics.pose().translate(X_PADDING + pos.xOffset, Y_PADDING + pos.yOffset);
 
         int cursorX = 0;
-        cursorX = drawPiece(graphics, client, coordsConfig, coordsConfig.text.xText, style.xColor, cursorX);
-        cursorX = drawPiece(graphics, client, coordsConfig, String.valueOf(x), style.xColor, cursorX);
+        cursorX = drawPiece(graphics, client, coordsConfig, coordsConfig.text.xText + x, style.xColor, cursorX);
         cursorX = drawDirPiece(graphics, client, coordsConfig, xDirKind, cursorX);
         cursorX = drawPiece(graphics, client, coordsConfig, coordsConfig.text.deliminator, style.deliminatorColor, cursorX);
-        cursorX = drawPiece(graphics, client, coordsConfig, coordsConfig.text.yText, style.yColor, cursorX);
-        cursorX = drawPiece(graphics, client, coordsConfig, String.valueOf(y), style.yColor, cursorX);
+        cursorX = drawPiece(graphics, client, coordsConfig, coordsConfig.text.yText + y, style.yColor, cursorX);
         cursorX = drawPiece(graphics, client, coordsConfig, coordsConfig.text.deliminator, style.deliminatorColor, cursorX);
-        cursorX = drawPiece(graphics, client, coordsConfig, coordsConfig.text.zText, style.zColor, cursorX);
-        cursorX = drawPiece(graphics, client, coordsConfig, String.valueOf(z), style.zColor, cursorX);
+        cursorX = drawPiece(graphics, client, coordsConfig, coordsConfig.text.zText + z, style.zColor, cursorX);
         cursorX = drawDirPiece(graphics, client, coordsConfig, zDirKind, cursorX);
 
         if (coordsConfig.visibility.showDirection) {
