@@ -12,31 +12,31 @@ public class OverlayModConfig implements ConfigData {
         NONE, SHADOW, FOUR_DIRECTION, EIGHT_DIRECTION
     }
 
-    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    @ConfigEntry.Gui.TransitiveObject
     @ConfigEntry.Category("coordinates")
     public CoordinatesCategory coordinates = new CoordinatesCategory();
 
-    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    @ConfigEntry.Gui.TransitiveObject
     @ConfigEntry.Category("clock")
     public ClockCategory clock = new ClockCategory();
 
-    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    @ConfigEntry.Gui.TransitiveObject
     @ConfigEntry.Category("sprinting")
     public SprintingCategory sprinting = new SprintingCategory();
 
-    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    @ConfigEntry.Gui.TransitiveObject
     @ConfigEntry.Category("statusEffects")
     public StatusEffectsCategory statusEffects = new StatusEffectsCategory();
 
-    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    @ConfigEntry.Gui.TransitiveObject
     @ConfigEntry.Category("equipment")
     public EquipmentCategory equipment = new EquipmentCategory();
 
-    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    @ConfigEntry.Gui.TransitiveObject
     @ConfigEntry.Category("bossbar")
     public BossBarCategory bossbar = new BossBarCategory();
 
-    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+    @ConfigEntry.Gui.TransitiveObject
     @ConfigEntry.Category("durability")
     public DurabilityCategory durability = new DurabilityCategory();
 
