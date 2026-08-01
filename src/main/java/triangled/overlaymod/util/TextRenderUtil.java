@@ -89,6 +89,15 @@ public class TextRenderUtil {
         return textColor != null ? ARGB.color(ARGB.alpha(baseColor), textColor.getValue()) : baseColor;
     }
 
+    private static Style formatOnly(Style style) {
+        return Style.EMPTY
+                .withBold(style.isBold())
+                .withItalic(style.isItalic())
+                .withUnderlined(style.isUnderlined())
+                .withStrikethrough(style.isStrikethrough())
+                .withObfuscated(style.isObfuscated());
+    }
+
     private record ColorSegment(FormattedCharSequence text, int color) {
     }
 
@@ -97,6 +106,7 @@ public class TextRenderUtil {
         private final List<ColorSegment> segments = new ArrayList<>();
         private final StringBuilder current = new StringBuilder();
         private int currentColor;
+        private Style currentFormat;
         private boolean hasCurrent;
 
         private RunCollector(int baseColor) {
@@ -106,11 +116,13 @@ public class TextRenderUtil {
         @Override
         public boolean accept(int position, Style style, int codepoint) {
             int color = resolveColor(style, baseColor);
-            if (hasCurrent && color != currentColor) {
+            Style format = formatOnly(style);
+            if (hasCurrent && (color != currentColor || !format.equals(currentFormat))) {
                 flush();
             }
             if (!hasCurrent) {
                 currentColor = color;
+                currentFormat = format;
                 hasCurrent = true;
             }
             current.appendCodePoint(codepoint);
@@ -119,7 +131,7 @@ public class TextRenderUtil {
 
         private void flush() {
             if (!current.isEmpty()) {
-                FormattedCharSequence sequence = Language.getInstance().getVisualOrder(FormattedText.of(current.toString()));
+                FormattedCharSequence sequence = Language.getInstance().getVisualOrder(FormattedText.of(current.toString(), currentFormat));
                 segments.add(new ColorSegment(sequence, currentColor));
                 current.setLength(0);
             }
