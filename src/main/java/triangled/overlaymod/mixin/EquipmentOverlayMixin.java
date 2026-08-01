@@ -11,6 +11,7 @@ import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -45,7 +46,8 @@ public class EquipmentOverlayMixin {
             equipmentConfig = OverlayMod.config.equipment;
         }
 
-        if (!(this.minecraft.getCameraEntity() instanceof Player player) || !equipmentConfig.visibility.showEquipment || player.isSpectator()) {
+        if (!(this.minecraft.getCameraEntity() instanceof Player player) || !equipmentConfig.visibility.showEquipment
+                || this.minecraft.gameMode.getPlayerMode() == GameType.SPECTATOR) {
             return;
         }
 
