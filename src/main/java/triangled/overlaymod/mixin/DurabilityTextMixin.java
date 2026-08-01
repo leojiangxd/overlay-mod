@@ -88,9 +88,9 @@ public class DurabilityTextMixin {
             return String.format("%d%%", percentage);
         }
 
-        if (currentDamage < 1000) {
+        if (currentDamage < 10000) {
             return Integer.toString(currentDamage);
-        } else if (currentDamage < 10000) {
+        } else if (currentDamage < 100000) {
             return String.format("%.1fk", Math.floor(currentDamage / 1000.0 * 10) / 10);
         } else {
             return String.format("%.0e", (double) currentDamage).replaceAll("e\\+0", "ᴇ");
