@@ -9,7 +9,7 @@ import me.shedaniel.autoconfig.annotation.ConfigEntry.Gui.EnumHandler.EnumDispla
 @Config(name = OverlayMod.MOD_ID)
 public class OverlayModConfig implements ConfigData {
     public enum TextShadow {
-        NONE, SHADOW, FULL
+        NONE, SHADOW, FOUR_DIRECTION, EIGHT_DIRECTION
     }
 
     @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
@@ -136,7 +136,7 @@ public class OverlayModConfig implements ConfigData {
 
         public static class Style {
             @ConfigEntry.Gui.EnumHandler(option = EnumDisplayOption.BUTTON)
-            public TextShadow amplifierTextShadow = TextShadow.FULL;
+            public TextShadow amplifierTextShadow = TextShadow.FOUR_DIRECTION;
             @ConfigEntry.Gui.EnumHandler(option = EnumDisplayOption.BUTTON)
             public TextShadow durationTextShadow = TextShadow.SHADOW;
         }

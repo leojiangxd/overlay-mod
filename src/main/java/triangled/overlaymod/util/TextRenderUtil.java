@@ -7,9 +7,13 @@ import triangled.overlaymod.config.OverlayModConfig.TextShadow;
 
 public class TextRenderUtil {
     public static void drawText(GuiGraphicsExtractor graphics, Font font, String text, int x, int y, int color, TextShadow shadow) {
-        switch (shadow) {
-            case FULL -> {
-                drawOutline(graphics, font, stripFormatting(text), x, y, color);
+        switch (shadow == null ? TextShadow.SHADOW : shadow) {
+            case FOUR_DIRECTION -> {
+                drawOutline(graphics, font, stripFormatting(text), x, y, color, false);
+                graphics.text(font, text, x, y, color, false);
+            }
+            case EIGHT_DIRECTION -> {
+                drawOutline(graphics, font, stripFormatting(text), x, y, color, true);
                 graphics.text(font, text, x, y, color, false);
             }
             case SHADOW -> graphics.text(font, text, x, y, color, true);
@@ -18,9 +22,13 @@ public class TextRenderUtil {
     }
 
     public static void drawText(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, int color, TextShadow shadow) {
-        switch (shadow) {
-            case FULL -> {
-                drawOutline(graphics, font, text.getString(), x, y, color);
+        switch (shadow == null ? TextShadow.SHADOW : shadow) {
+            case FOUR_DIRECTION -> {
+                drawOutline(graphics, font, text.getString(), x, y, color, false);
+                graphics.text(font, text, x, y, color, false);
+            }
+            case EIGHT_DIRECTION -> {
+                drawOutline(graphics, font, text.getString(), x, y, color, true);
                 graphics.text(font, text, x, y, color, false);
             }
             case SHADOW -> graphics.text(font, text, x, y, color, true);
@@ -28,12 +36,18 @@ public class TextRenderUtil {
         }
     }
 
-    private static void drawOutline(GuiGraphicsExtractor graphics, Font font, String outline, int x, int y, int color) {
+    private static void drawOutline(GuiGraphicsExtractor graphics, Font font, String outline, int x, int y, int color, boolean diagonals) {
         int shadowColor = shadowColor(color);
         graphics.text(font, outline, x - 1, y, shadowColor, false);
         graphics.text(font, outline, x + 1, y, shadowColor, false);
         graphics.text(font, outline, x, y - 1, shadowColor, false);
         graphics.text(font, outline, x, y + 1, shadowColor, false);
+        if (diagonals) {
+            graphics.text(font, outline, x - 1, y - 1, shadowColor, false);
+            graphics.text(font, outline, x + 1, y - 1, shadowColor, false);
+            graphics.text(font, outline, x - 1, y + 1, shadowColor, false);
+            graphics.text(font, outline, x + 1, y + 1, shadowColor, false);
+        }
     }
 
     private static int shadowColor(int color) {
