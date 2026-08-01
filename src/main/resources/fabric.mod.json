@@ -13,32 +13,25 @@
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/overlay-mod/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
-		"main": [
-			"triangled.overlaymod.OverlayMod"
-		],
 		"client": [
-			"triangled.overlaymod.OverlayModClient"
+			"triangled.overlaymod.OverlayMod"
 		],
 		"modmenu": [
 			"triangled.overlaymod.config.ModMenuIntegration"
 		]
 	},
 	"mixins": [
-		"overlay-mod.mixins.json",
-		{
-			"config": "overlay-mod.client.mixins.json",
-			"environment": "client"
-		}
+		"overlay-mod.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.16.14",
-		"minecraft": "~1.21.4",
-		"java": ">=21",
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"modmenu": "14.0.0"
+		"modmenu": "20.0.1"
 	}
 }
