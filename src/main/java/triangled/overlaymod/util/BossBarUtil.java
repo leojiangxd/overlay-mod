@@ -12,10 +12,10 @@ import triangled.overlaymod.mixin.HudAccessor;
 
 public class BossBarUtil {
 
-    public static int getBossBarOffset(GuiGraphicsExtractor context, Minecraft client) {
+    public static float getBossBarOffset(GuiGraphicsExtractor context, Minecraft client) {
         Gui gui = client.gui;
         if (gui == null) {
-            return 0;
+            return 0.0F;
         }
 
         Hud hud = gui.hud;
@@ -23,22 +23,26 @@ public class BossBarUtil {
         int numberOfBossBars = ((BossHealthOverlayAccessor) bossOverlay).getEvents().size();
 
         if (numberOfBossBars <= 0) {
-            return 0;
+            return 0.0F;
         }
 
         OverlayModConfig.BossBarCategory config = OverlayMod.config.bossbar;
 
-        int bossBarOffset = 12;
+        float initialOffset = 12.0F;
+        float bossBarOffset = initialOffset;
         float scale = config.visibility.shouldScaleBossBars ? config.positioning.scale : 1.0F;
         int maxHeight = config.visibility.shouldScaleBossBars ? config.positioning.maxHeight : 3;
+        float yOffset = config.visibility.shouldScaleBossBars ? config.positioning.yOffset : 0.0F;
 
         for (int i = 0; i < numberOfBossBars; i++) {
-            bossBarOffset += 19;
+            bossBarOffset += 19.0F;
             if (bossBarOffset >= (context.guiHeight() / scale) / maxHeight) {
                 break;
             }
         }
 
-        return (int) ((bossBarOffset - 12) * scale);
+        float contentBottom = bossBarOffset - 14.0F;
+
+        return (contentBottom - yOffset) * scale;
     }
 }
