@@ -71,7 +71,7 @@ public class StatusEffectOverlayMixin {
         float bossBarOffset = BossBarUtil.getBossBarOffset(graphics, minecraft);
         float bossBarInitialYOffset = statusEffectConfig.positioning.bossBarInitialYOffset;
         float bossBarYTranslation = bossBarOffset -
-                (bossBarOffset + bossBarInitialYOffset > 0 ? bossBarInitialYOffset : 0);
+                (bossBarOffset > 0 && bossBarOffset + bossBarInitialYOffset > 0 ? bossBarInitialYOffset : 0);
         float statusEffectOffsetY = 0f;
 
         List<Runnable> renderTasks = new ArrayList<>();
