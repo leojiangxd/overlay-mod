@@ -55,6 +55,7 @@ public class EquipmentOverlayMixin {
         int offsetXRight = graphics.guiWidth() / 2 + 109;
         int offsetY = graphics.guiHeight() - 23;
         int l = 0;
+        int l = 1000;
 
         Stream<ItemStack> equipmentStream = Stream.of(
                 player.getItemBySlot(EquipmentSlot.HEAD),
