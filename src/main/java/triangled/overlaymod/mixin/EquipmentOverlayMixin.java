@@ -34,7 +34,8 @@ public class EquipmentOverlayMixin {
     private Minecraft minecraft;
 
     @Shadow
-    private void extractSlot(GuiGraphicsExtractor graphics, int x, int y, DeltaTracker tickCounter, Player player, ItemStack stack, int seed) {
+    private void extractSlot(GuiGraphicsExtractor graphics, int x, int y, DeltaTracker tickCounter, Player player,
+            ItemStack stack, int seed) {
     }
 
     @Unique
@@ -54,14 +55,13 @@ public class EquipmentOverlayMixin {
         int offsetXLeft = graphics.guiWidth() / 2 - 120;
         int offsetXRight = graphics.guiWidth() / 2 + 109;
         int offsetY = graphics.guiHeight() - 23;
-        int l = 0;
+        int l = 1000;
 
         Stream<ItemStack> equipmentStream = Stream.of(
                 player.getItemBySlot(EquipmentSlot.HEAD),
                 player.getItemBySlot(EquipmentSlot.CHEST),
                 player.getItemBySlot(EquipmentSlot.LEGS),
-                player.getItemBySlot(EquipmentSlot.FEET)
-        );
+                player.getItemBySlot(EquipmentSlot.FEET));
         if (!equipmentConfig.visibility.showEmptyArmor) {
             equipmentStream = equipmentStream.filter(s -> s.getItem() != Items.AIR);
         }
@@ -103,9 +103,11 @@ public class EquipmentOverlayMixin {
             graphics.pose().translate(xOffset, -equipmentConfig.positioning.equipmentYOffset);
 
             if (equipmentConfig.visibility.renderBackground) {
-                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Identifier.withDefaultNamespace("hud/hotbar"), 182, 22, 0, 0,
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Identifier.withDefaultNamespace("hud/hotbar"), 182,
+                        22, 0, 0,
                         offsetX, offsetY, equipmentWidth, 22);
-                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Identifier.withDefaultNamespace("hud/hotbar"), 182, 22, 182 - equipmentWidth, 0,
+                graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Identifier.withDefaultNamespace("hud/hotbar"), 182,
+                        22, 182 - equipmentWidth, 0,
                         offsetX + equipmentWidth, offsetY, equipmentWidth, 22);
             }
             for (int i = 0; i < equipment.size(); i++) {
