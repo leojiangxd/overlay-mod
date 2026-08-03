@@ -11,9 +11,6 @@ import triangled.overlaymod.util.TextRenderUtil;
 import static triangled.overlaymod.config.OverlayModConfig.replaceAnd;
 
 public class CoordinatesHUD {
-    private static final int X_PADDING = 3;
-    private static final int Y_PADDING = 3;
-
     private static final int DIR_NONE = 0;
     private static final int DIR_POS = 1;
     private static final int DIR_NEG = 2;
@@ -48,7 +45,7 @@ public class CoordinatesHUD {
         OverlayModConfig.CoordinatesCategory.Positioning pos = coordsConfig.positioning;
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(X_PADDING + pos.xOffset, Y_PADDING - pos.yOffset);
+        graphics.pose().translate(pos.xOffset, -pos.yOffset);
 
         int cursorX = 0;
         cursorX = drawPiece(graphics, client, coordsConfig, coordsConfig.text.xText + x, style.xColor, cursorX);

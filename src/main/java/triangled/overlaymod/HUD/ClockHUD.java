@@ -13,9 +13,6 @@ import java.time.format.DateTimeFormatter;
 import static triangled.overlaymod.config.OverlayModConfig.replaceAnd;
 
 public class ClockHUD {
-    private static final int X_PADDING = 3;
-    private static final int Y_PADDING = 3;
-
     private static boolean sprintIntentActive = false;
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker tickCounter) {
@@ -40,10 +37,10 @@ public class ClockHUD {
                 : "";
 
         int combinedWidth = client.font.width(sprinting) + client.font.width(deliminator) + client.font.width(formattedTime);
-        int x = graphics.guiWidth() - combinedWidth - X_PADDING;
+        int x = graphics.guiWidth() - combinedWidth;
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(x + clockConfig.positioning.xOffset, Y_PADDING - clockConfig.positioning.yOffset);
+        graphics.pose().translate(x + clockConfig.positioning.xOffset, -clockConfig.positioning.yOffset);
 
         int cursorX = 0;
         cursorX = drawSprintPiece(graphics, client, sprinting, sprintingConfig, clockConfig, cursorX);

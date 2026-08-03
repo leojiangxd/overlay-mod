@@ -112,8 +112,8 @@ public class OverlayModConfig implements ConfigData {
         }
 
         public static class Positioning {
-            public float xOffset = 0f;
-            public float yOffset = 0f;
+            public float xOffset = 3f;
+            public float yOffset = -3f;
             public float dirXOffset = 0f;
             public float dirYOffset = 0f;
         }
@@ -273,8 +273,8 @@ public class OverlayModConfig implements ConfigData {
         }
 
         public static class Positioning {
-            public float xOffset = 0f;
-            public float yOffset = 0f;
+            public float xOffset = -3f;
+            public float yOffset = -3f;
         }
     }
 
@@ -301,7 +301,7 @@ public class OverlayModConfig implements ConfigData {
         public static class Positioning {
             public float scale = 0.5F;
             public float xOffset = 0f;
-            public float yOffset = -3.0F;
+            public float yOffset = -3f;
             public int maxHeight = 6;
         }
     }

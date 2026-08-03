@@ -28,11 +28,12 @@ public class BossBarUtil {
 
         OverlayModConfig.BossBarCategory config = OverlayMod.config.bossbar;
 
-        float initialOffset = 12.0F;
+        boolean scaled = config.visibility.shouldScaleBossBars;
+        float initialOffset = scaled ? 9.0F : 12.0F;
         float bossBarOffset = initialOffset;
-        float scale = config.visibility.shouldScaleBossBars ? config.positioning.scale : 1.0F;
-        int maxHeight = config.visibility.shouldScaleBossBars ? config.positioning.maxHeight : 3;
-        float yOffset = config.visibility.shouldScaleBossBars ? config.positioning.yOffset : 0.0F;
+        float scale = scaled ? config.positioning.scale : 1.0F;
+        int maxHeight = scaled ? config.positioning.maxHeight : 3;
+        float yOffset = scaled ? config.positioning.yOffset : 0.0F;
 
         for (int i = 0; i < numberOfBossBars; i++) {
             bossBarOffset += 19.0F;
@@ -43,6 +44,6 @@ public class BossBarUtil {
 
         float contentBottom = bossBarOffset - 14.0F;
 
-        return (contentBottom - yOffset) * scale;
+        return contentBottom * scale - yOffset;
     }
 }

@@ -58,10 +58,10 @@ public abstract class ScaleBossBarMixin {
         matrixStack.translate(centerX, 0.0F);
         float scale = config.positioning.scale;
         matrixStack.scale(scale, scale);
-        matrixStack.translate(-centerX + config.positioning.xOffset, -config.positioning.yOffset);
+        matrixStack.translate(-centerX + config.positioning.xOffset / scale, -config.positioning.yOffset / scale);
 
         int screenWidth = graphics.guiWidth();
-        int j = 12;
+        int j = 9;
 
         for (LerpingBossEvent bossEvent : this.events.values()) {
             int x = screenWidth / 2 - 91;
@@ -72,7 +72,8 @@ public abstract class ScaleBossBarMixin {
             int nameWidth = minecraft.font.width(name);
             int nameX = screenWidth / 2 - nameWidth / 2;
             int nameY = y - 9;
-            TextRenderUtil.drawText(graphics, minecraft.font, name, nameX, nameY, config.style.nameColor, config.style.nameTextShadow);
+            TextRenderUtil.drawText(graphics, minecraft.font, name, nameX, nameY, config.style.nameColor,
+                    config.style.nameTextShadow);
 
             j += 10 + 9;
             if (j >= (graphics.guiHeight() / scale) / config.positioning.maxHeight) {
