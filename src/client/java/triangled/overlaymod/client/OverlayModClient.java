@@ -21,5 +21,6 @@ public class OverlayModClient implements ClientModInitializer {
 		HudManager.register(new StatusEffectsHud());
 		HudManager.register(new ArmorHud());
 		HudManager.register(new BossBarHud());
+		ChatPeek.init();
 	}
 }
