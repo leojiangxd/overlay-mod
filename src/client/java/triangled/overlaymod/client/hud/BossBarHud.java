@@ -14,7 +14,6 @@ import net.minecraft.world.BossEvent;
 import org.polyfrost.compose.render.PolyColor;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Color;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Dropdown;
-import org.polyfrost.oneconfig.api.config.v1.annotations.Number;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Slider;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
@@ -40,10 +39,6 @@ public class BossBarHud extends LegacyHud {
 
     // ---------------------------------------------------------------- Layout
 
-    @Number(title = "Bar Scale", description = "Size of the bars and names, on top of the HUD's own scale",
-            min = 0.1F, max = 2, subcategory = "Layout")
-    public float barScale = 0.5F;
-
     @Slider(title = "Max Height", description = "Stop adding bars once they fill 1/n of the screen height",
             min = 1, max = 10, step = 1, subcategory = "Layout")
     public int maxHeight = 6;
@@ -59,6 +54,7 @@ public class BossBarHud extends LegacyHud {
 
     public BossBarHud() {
         super("overlaymod_boss_bars.yml", "Boss Bars", Hud.Category.Companion.getINFO());
+        setCustomScale(0.5F);
     }
 
     public static boolean replacesVanilla() {
@@ -95,7 +91,7 @@ public class BossBarHud extends LegacyHud {
         if (total <= 0) {
             return 0;
         }
-        float limit = HudManager.guiScreenHeight / Math.max(0.01F, barScale) / Math.max(1, maxHeight);
+        float limit = HudManager.guiScreenHeight / Math.max(0.01F, getEffectiveScale()) / Math.max(1, maxHeight);
         int count = 1;
         while (count < total && 12 + count * STRIDE < limit) {
             count++;
@@ -116,14 +112,36 @@ public class BossBarHud extends LegacyHud {
         return width;
     }
 
+    private float[] bounds(List<? extends BossEvent> events) {
+        Font font = Minecraft.getInstance().font;
+        float width = contentWidth(events);
+        float[] bounds = {0, 0, width, Math.max(1, contentHeight(events.size()))};
+        for (int i = 0; i < events.size(); i++) {
+            int nameWidth = font.width(events.get(i).getName());
+            float[] box = TextRenderUtil.textBounds(font, nameWidth, nameX(width, nameWidth), i * STRIDE, 1F,
+                    nameTextShadow);
+            bounds[0] = Math.min(bounds[0], box[0]);
+            bounds[1] = Math.min(bounds[1], box[1]);
+            bounds[2] = Math.max(bounds[2], box[2]);
+            bounds[3] = Math.max(bounds[3], box[3]);
+        }
+        return bounds;
+    }
+
+    private static int nameX(float width, int nameWidth) {
+        return Math.round((width - nameWidth) / 2f);
+    }
+
     @Override
     public float getWidth() {
-        return contentWidth(shownEvents()) * barScale;
+        float[] bounds = bounds(shownEvents());
+        return bounds[2] - bounds[0];
     }
 
     @Override
     public float getHeight() {
-        return Math.max(1, contentHeight(shownEvents().size())) * barScale;
+        float[] bounds = bounds(shownEvents());
+        return bounds[3] - bounds[1];
     }
 
     @Override
@@ -147,15 +165,16 @@ public class BossBarHud extends LegacyHud {
     }
 
     public float[] liveScreenBounds() {
-        int count = visibleCount(liveEvents().size());
+        List<LerpingBossEvent> events = liveEvents();
+        int count = visibleCount(events.size());
         if (count == 0 || getHidden()) {
             return null;
         }
-        float scale = getFrameScale() * barScale;
+        float scale = getFrameScale();
+        float[] bounds = bounds(events.subList(0, count));
         float left = getFrameX();
-        float right = left + contentWidth(liveEvents()) * scale;
-        float bottom = getFrameY() + contentHeight(count) * scale;
-        return new float[] {left, right, bottom};
+        float top = getFrameY();
+        return new float[] {left, top, left + (bounds[2] - bounds[0]) * scale, top + (bounds[3] - bounds[1]) * scale};
     }
 
     @Override
@@ -168,18 +187,18 @@ public class BossBarHud extends LegacyHud {
 
         Font font = Minecraft.getInstance().font;
         float width = contentWidth(events);
+        float[] bounds = bounds(events);
         int color = nameColor == null ? 0xFFFFFFFF : nameColor.getArgb();
 
         graphics.pose().pushMatrix();
-        graphics.pose().scale(barScale, barScale);
+        graphics.pose().translate(-bounds[0], -bounds[1]);
 
         for (int i = 0; i < events.size(); i++) {
             BossEvent event = events.get(i);
             int top = i * STRIDE;
 
             Component name = event.getName();
-            int nameX = Math.round((width - font.width(name)) / 2f);
-            TextRenderUtil.drawText(graphics, font, name, nameX, top, color, nameTextShadow);
+            TextRenderUtil.drawText(graphics, font, name, nameX(width, font.width(name)), top, color, nameTextShadow);
 
             int barX = Math.round((width - BAR_WIDTH) / 2f);
             ((BossHealthOverlayAccessor) overlay).invokeExtractBar(graphics, barX, top + NAME_HEIGHT, event);

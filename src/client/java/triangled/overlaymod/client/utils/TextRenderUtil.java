@@ -30,6 +30,27 @@ public class TextRenderUtil {
         }
     }
 
+    public record Extent(int left, int top, int right, int bottom) {
+    }
+
+    public static Extent shadowExtent(TextShadow shadow) {
+        return switch (shadow == null ? TextShadow.SHADOW : shadow) {
+            case FOUR_DIRECTION, EIGHT_DIRECTION -> new Extent(1, 1, 1, 1);
+            case SHADOW -> new Extent(0, 0, 1, 1);
+            case NONE -> new Extent(0, 0, 0, 0);
+        };
+    }
+
+    public static float[] textBounds(Font font, int width, float x, float y, float scale, TextShadow shadow) {
+        Extent extent = shadowExtent(shadow);
+        return new float[] {
+                x - extent.left() * scale,
+                y - extent.top() * scale,
+                x + (width + extent.right()) * scale,
+                y + (font.lineHeight - 1 + extent.bottom()) * scale
+        };
+    }
+
     public static void drawText(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, int color, TextShadow shadow) {
         switch (shadow == null ? TextShadow.SHADOW : shadow) {
             case FOUR_DIRECTION -> {

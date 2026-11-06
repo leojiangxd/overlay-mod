@@ -2,6 +2,7 @@ package triangled.overlaymod.client.utils;
 
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
 import org.polyfrost.oneconfig.api.hud.v1.HudManager;
+import org.polyfrost.oneconfig.api.hud.v1.LegacyHud;
 import triangled.overlaymod.client.hud.BossBarHud;
 
 public class BossBarUtil {
@@ -10,33 +11,36 @@ public class BossBarUtil {
     private BossBarUtil() {
     }
 
-    public static float pushDown(Hud hud) {
-        float[] span = {hud.getFrameX(), hud.getFrameX() + hud.getScaledWidth()};
+    public static float pushDown(LegacyHud hud) {
+        float scale = Math.max(0.01F, hud.getFrameScale());
+        float left = hud.getFrameX();
         float top = hud.getFrameY();
+        float right = left + hud.getWidth() * scale;
+        float bottom = top + hud.getHeight() * scale;
         float push = 0F;
 
         for (Hud other : HudManager.INSTANCE.getActiveInstances()) {
             if (other instanceof BossBarHud bossBars) {
-                float[] bounds = bossBars.liveScreenBounds();
-                if (bounds != null && bossBars.getFrameY() <= top && overlaps(span, bounds[0], bounds[1])) {
-                    push = Math.max(push, bounds[2] + GAP - top);
+                float[] bars = bossBars.liveScreenBounds();
+                if (bars != null && overlaps(left, top, right, bottom, bars[0], bars[1], bars[2], bars[3])) {
+                    push = Math.max(push, bars[3] + GAP - top);
                 }
             }
         }
 
         if (!BossBarHud.replacesVanilla()) {
-            float vanillaBottom = vanillaBottom();
+            float barsBottom = vanillaBottom();
             float center = HudManager.guiScreenWidth / 2F;
-            if (vanillaBottom > 0 && overlaps(span, center - 91, center + 91)) {
-                push = Math.max(push, vanillaBottom + GAP - top);
+            if (barsBottom > 0 && overlaps(left, top, right, bottom, center - 91, 3F, center + 91, barsBottom)) {
+                push = Math.max(push, barsBottom + GAP - top);
             }
         }
 
-        return Math.max(0F, push) / Math.max(0.01F, hud.getFrameScale());
+        return push / scale;
     }
 
-    private static boolean overlaps(float[] span, float left, float right) {
-        return span[0] < right && left < span[1];
+    private static boolean overlaps(float l1, float t1, float r1, float b1, float l2, float t2, float r2, float b2) {
+        return l1 < r2 && l2 < r1 && t1 < b2 && t2 < b1;
     }
 
     private static float vanillaBottom() {

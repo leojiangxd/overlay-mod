@@ -38,28 +38,20 @@ public abstract class MinecraftTextHud extends LegacyHud {
         return FormatCodes.replaceAnd(text);
     }
 
-    private int[] shadowPadding() {
-        return switch (minecraftTextShadow == null ? TextShadow.SHADOW : minecraftTextShadow) {
-            case FOUR_DIRECTION, EIGHT_DIRECTION -> new int[] {1, 1};
-            case SHADOW -> new int[] {0, 1};
-            case NONE -> new int[] {0, 0};
-        };
-    }
-
     private static Font font() {
         return Minecraft.getInstance().font;
     }
 
     @Override
     public float getWidth() {
-        int[] pad = shadowPadding();
-        return font().width(displayText()) + pad[0] + pad[1];
+        TextRenderUtil.Extent extent = TextRenderUtil.shadowExtent(minecraftTextShadow);
+        return font().width(displayText()) + extent.left() + extent.right();
     }
 
     @Override
     public float getHeight() {
-        int[] pad = shadowPadding();
-        return font().lineHeight - 1 + pad[0] + pad[1];
+        TextRenderUtil.Extent extent = TextRenderUtil.shadowExtent(minecraftTextShadow);
+        return font().lineHeight - 1 + extent.top() + extent.bottom();
     }
 
     @Override
@@ -78,8 +70,8 @@ public abstract class MinecraftTextHud extends LegacyHud {
         if (text.isEmpty()) {
             return;
         }
-        int pad = shadowPadding()[0];
+        TextRenderUtil.Extent extent = TextRenderUtil.shadowExtent(minecraftTextShadow);
         int color = minecraftTextColor == null ? 0xFFFFFFFF : minecraftTextColor.getArgb();
-        TextRenderUtil.drawText(graphics, font(), text, pad, pad, color, minecraftTextShadow);
+        TextRenderUtil.drawText(graphics, font(), text, extent.left(), extent.top(), color, minecraftTextShadow);
     }
 }

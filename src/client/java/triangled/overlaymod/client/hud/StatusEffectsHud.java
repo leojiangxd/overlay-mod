@@ -228,14 +228,6 @@ public class StatusEffectsHud extends LegacyHud {
         return count <= 0 ? 0 : (count - 1) * stride() + ICON_SIZE;
     }
 
-    private float rowHeight() {
-        if (!renderDuration) {
-            return ICON_SIZE;
-        }
-        float lineHeight = Minecraft.getInstance().font.lineHeight;
-        return Math.max(ICON_SIZE, durationY() + durationScale * lineHeight);
-    }
-
     private float bottomRowY() {
         return ICON_SIZE + rowGap;
     }
@@ -245,16 +237,58 @@ public class StatusEffectsHud extends LegacyHud {
         return 23 + (lineHeight - durationScale * lineHeight) / 2f + durationScale * (1.0f - durationYOffset);
     }
 
+    private float iconRowsWidth(Rows rows) {
+        return Math.max(ICON_SIZE, Math.max(rowWidth(rows.top().size()), rowWidth(rows.bottom().size())));
+    }
+
+    private float[] bounds(Rows rows) {
+        Font font = Minecraft.getInstance().font;
+        float width = iconRowsWidth(rows);
+        float[] bounds = {Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
+        includeRow(bounds, font, rows.top(), rowX(width, rows.top().size()), 0);
+        includeRow(bounds, font, rows.bottom(), rowX(width, rows.bottom().size()), bottomRowY());
+        if (bounds[0] > bounds[2]) {
+            return new float[] {0, 0, ICON_SIZE, ICON_SIZE};
+        }
+        return bounds;
+    }
+
+    private void includeRow(float[] bounds, Font font, List<MobEffectInstance> effects, float x, float y) {
+        int inset = renderBackground ? 0 : 3;
+        for (int i = 0; i < effects.size(); i++) {
+            MobEffectInstance effect = effects.get(i);
+            float effectX = x + i * stride();
+            include(bounds, new float[] {effectX + inset, y + inset, effectX + ICON_SIZE - inset, y + ICON_SIZE - inset});
+            if (renderAmplifier && effect.getAmplifier() > 0) {
+                String text = amplifierString(effect);
+                include(bounds, TextRenderUtil.textBounds(font, font.width(text), effectX + amplifierX(font, text),
+                        y + amplifierY(font), amplifierScale, amplifierTextShadow));
+            }
+            if (renderDuration) {
+                String text = durationLabel(effect);
+                include(bounds, TextRenderUtil.textBounds(font, font.width(text), effectX + durationX(font, text),
+                        y + durationY(), durationScale, durationTextShadow));
+            }
+        }
+    }
+
+    private static void include(float[] bounds, float[] box) {
+        bounds[0] = Math.min(bounds[0], box[0]);
+        bounds[1] = Math.min(bounds[1], box[1]);
+        bounds[2] = Math.max(bounds[2], box[2]);
+        bounds[3] = Math.max(bounds[3], box[3]);
+    }
+
     @Override
     public float getWidth() {
-        Rows rows = rows();
-        return Math.max(ICON_SIZE, Math.max(rowWidth(rows.top().size()), rowWidth(rows.bottom().size())));
+        float[] bounds = bounds(rows());
+        return bounds[2] - bounds[0];
     }
 
     @Override
     public float getHeight() {
-        Rows rows = rows();
-        return rows.bottom().isEmpty() ? rowHeight() : Math.max(rowHeight(), bottomRowY() + rowHeight());
+        float[] bounds = bounds(rows());
+        return bounds[3] - bounds[1];
     }
 
     @Override
@@ -285,11 +319,12 @@ public class StatusEffectsHud extends LegacyHud {
         }
 
         Minecraft mc = Minecraft.getInstance();
-        float width = getWidth();
+        float width = iconRowsWidth(rows);
+        float[] bounds = bounds(rows);
         float bossBarOffset = belowBossBars && !HudManager.INSTANCE.isEditing() ? BossBarUtil.pushDown(this) : 0f;
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(0, bossBarOffset);
+        graphics.pose().translate(-bounds[0], -bounds[1] + bossBarOffset);
 
         float topX = rowX(width, rows.top().size());
         float bottomX = rowX(width, rows.bottom().size());
@@ -360,18 +395,36 @@ public class StatusEffectsHud extends LegacyHud {
         }
     }
 
-    private void drawAmplifier(GuiGraphicsExtractor graphics, Font font, MobEffectInstance effect, float x, float y) {
+    private String amplifierString(MobEffectInstance effect) {
         String digits = String.valueOf(effect.getAmplifier() + 1);
-        String text = FormatCodes.replaceAnd(effect.isAmbient() ? ambientAmplifierText : amplifierText)
+        return FormatCodes.replaceAnd(effect.isAmbient() ? ambientAmplifierText : amplifierText)
                 + (subscriptAmplifier ? FormatCodes.toSubscript(digits) : digits);
+    }
 
-        float scale = amplifierScale;
+    private float amplifierX(Font font, String text) {
+        return (ICON_SIZE - amplifierScale * font.width(text)) / 2f + amplifierScale * (0.5f + amplifierXOffset);
+    }
+
+    private float amplifierY(Font font) {
         float styleYOffset = subscriptAmplifier ? -1.5f : 0f;
-        float textX = (ICON_SIZE - scale * font.width(text)) / 2f + scale * (0.5f + amplifierXOffset);
-        float textY = 8 + (font.lineHeight - scale * font.lineHeight) / 2f + scale * (styleYOffset - amplifierYOffset);
+        return 8 + (font.lineHeight - amplifierScale * font.lineHeight) / 2f
+                + amplifierScale * (styleYOffset - amplifierYOffset);
+    }
+
+    private String durationLabel(MobEffectInstance effect) {
+        return FormatCodes.replaceAnd(durationText + durationString(effect));
+    }
+
+    private float durationX(Font font, String text) {
+        return (ICON_SIZE - durationScale * font.width(text)) / 2f + durationScale * (0.5f + durationXOffset);
+    }
+
+    private void drawAmplifier(GuiGraphicsExtractor graphics, Font font, MobEffectInstance effect, float x, float y) {
+        String text = amplifierString(effect);
+        float scale = amplifierScale;
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(x + textX, y + textY);
+        graphics.pose().translate(x + amplifierX(font, text), y + amplifierY(font));
         graphics.pose().scale(scale, scale);
         int color = argb(effect.isAmbient() ? ambientAmplifierColor : amplifierColor);
         TextRenderUtil.drawText(graphics, font, text, 0, 0, color, amplifierTextShadow);
@@ -379,13 +432,11 @@ public class StatusEffectsHud extends LegacyHud {
     }
 
     private void drawDuration(GuiGraphicsExtractor graphics, Font font, MobEffectInstance effect, float x, float y) {
-        String text = FormatCodes.replaceAnd(durationText + durationString(effect));
-
+        String text = durationLabel(effect);
         float scale = durationScale;
-        float textX = (ICON_SIZE - scale * font.width(text)) / 2f + scale * (0.5f + durationXOffset);
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(x + textX, y + durationY());
+        graphics.pose().translate(x + durationX(font, text), y + durationY());
         graphics.pose().scale(scale, scale);
         int color = argb(isExpiringSoon(effect) ? expirationColor
                 : effect.isAmbient() ? ambientDurationColor : durationColor);
