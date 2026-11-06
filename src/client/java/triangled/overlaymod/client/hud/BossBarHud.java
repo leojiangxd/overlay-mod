@@ -140,11 +140,6 @@ public class BossBarHud extends OverlayHud {
     }
 
     @Override
-    public boolean multipleInstancesAllowed() {
-        return false;
-    }
-
-    @Override
     public Pair<Float, Float> defaultPosition() {
         return new Pair<>((HudManager.guiScreenWidth - getScaledWidth()) / 2f, 3.0F);
     }

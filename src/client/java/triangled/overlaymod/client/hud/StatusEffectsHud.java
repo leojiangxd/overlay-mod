@@ -310,11 +310,6 @@ public class StatusEffectsHud extends OverlayHud {
     }
 
     @Override
-    public boolean multipleInstancesAllowed() {
-        return false;
-    }
-
-    @Override
     public Pair<Float, Float> defaultPosition() {
         return new Pair<>((HudManager.guiScreenWidth - getScaledWidth()) / 2f, 4.0F);
     }
