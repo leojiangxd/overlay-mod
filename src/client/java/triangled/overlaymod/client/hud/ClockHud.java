@@ -16,7 +16,7 @@ public class ClockHud extends TextHud {
     private DateTimeFormatter cachedFormatter;
 
     @Text(title = "Format", description = "Date/time pattern, for example h:mm a. Wrap literal text in single quotes")
-    public String format = "h:mm a";
+    public String format = "h:mm";
 
     public ClockHud() {
         super("overlaymod_clock.yml", "Clock", Hud.Category.Companion.getINFO(), "", "");
