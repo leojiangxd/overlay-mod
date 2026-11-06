@@ -5,6 +5,7 @@ import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.locale.Language;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
@@ -27,6 +28,27 @@ public class TextRenderUtil {
             case SHADOW -> graphics.text(font, text, x, y, color, true);
             case NONE -> graphics.text(font, text, x, y, color, false);
         }
+    }
+
+    public static void drawText(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, int color, TextShadow shadow) {
+        switch (shadow == null ? TextShadow.SHADOW : shadow) {
+            case FOUR_DIRECTION -> {
+                drawOutline(graphics, font, segments(text.getVisualOrderText(), color), x, y, false);
+                graphics.text(font, text, x, y, color, false);
+            }
+            case EIGHT_DIRECTION -> {
+                drawOutline(graphics, font, segments(text.getVisualOrderText(), color), x, y, true);
+                graphics.text(font, text, x, y, color, false);
+            }
+            case SHADOW -> graphics.text(font, text, x, y, color, true);
+            case NONE -> graphics.text(font, text, x, y, color, false);
+        }
+    }
+
+    private static List<ColorSegment> segments(FormattedCharSequence text, int baseColor) {
+        RunCollector collector = new RunCollector(baseColor);
+        text.accept(collector);
+        return collector.finish();
     }
 
     private static void drawOutline(GuiGraphicsExtractor graphics, Font font, List<ColorSegment> segments, int x, int y, boolean diagonals) {

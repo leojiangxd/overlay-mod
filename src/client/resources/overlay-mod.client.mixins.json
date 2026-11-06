@@ -3,7 +3,11 @@
 	"package": "triangled.overlaymod.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"DurabilityTextMixin"
+		"BossHealthOverlayAccessor",
+		"DurabilityTextMixin",
+		"HideVanillaBossBarsMixin",
+		"HideVanillaEffectsMixin",
+		"HudAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1

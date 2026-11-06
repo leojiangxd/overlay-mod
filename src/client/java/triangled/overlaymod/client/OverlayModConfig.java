@@ -17,6 +17,8 @@ public class OverlayModConfig extends Config {
     @MasterToggle
     public static boolean enabled = true;
 
+    // ---------------------------------------------------------------- Visibility
+
     @Switch(title = "Durability Text", description = "Show the remaining durability over the item's durability bar",
             category = "Durability", subcategory = "Visibility")
     public static boolean durabilityShowText = true;
@@ -28,6 +30,8 @@ public class OverlayModConfig extends Config {
     @Switch(title = "Show At Full Durability", description = "Keep showing the durability on undamaged items",
             category = "Durability", subcategory = "Visibility")
     public static boolean durabilityShowAtFull = false;
+
+    // ---------------------------------------------------------------- Format
 
     @Switch(title = "Show As Percentage", description = "Show remaining durability as a percentage instead of a count",
             category = "Durability", subcategory = "Format")
@@ -45,9 +49,11 @@ public class OverlayModConfig extends Config {
             min = 1, max = 10, step = 1, category = "Durability", subcategory = "Format")
     public static int durabilitySubscriptDigitLimit = 5;
 
+    // ---------------------------------------------------------------- Style
+
     @Dropdown(title = "Text Shadow", description = "How the durability text is shadowed or outlined",
             category = "Durability", subcategory = "Style")
-    public static TextShadow durabilityTextShadow = TextShadow.EIGHT_DIRECTION;
+    public static TextShadow durabilityTextShadow = TextShadow.SHADOW;
 
     @Switch(title = "Use Custom Color", description = "Use the colour below instead of the bar's own colour",
             category = "Durability", subcategory = "Style")
@@ -56,6 +62,8 @@ public class OverlayModConfig extends Config {
     @Color(title = "Color", description = "Colour of the durability text when a custom colour is in use",
             category = "Durability", subcategory = "Style")
     public static PolyColor durabilityColor = new PolyColor(0xFFFFFFFF, false, 1.0F);
+
+    // ---------------------------------------------------------------- Position
 
     @Dropdown(title = "Alignment", description = "Where the durability text sits over the bar",
             category = "Durability", subcategory = "Position")

@@ -6,12 +6,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import kotlin.Pair;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Text;
-import org.polyfrost.oneconfig.api.hud.v1.Font;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
 import org.polyfrost.oneconfig.api.hud.v1.HudManager;
-import org.polyfrost.oneconfig.api.hud.v1.TextHud;
 
-public class ClockHud extends TextHud {
+public class ClockHud extends MinecraftTextHud {
     private String cachedPattern;
     private DateTimeFormatter cachedFormatter;
 
@@ -19,8 +17,7 @@ public class ClockHud extends TextHud {
     public String format = "h:mm";
 
     public ClockHud() {
-        super("overlaymod_clock.yml", "Clock", Hud.Category.Companion.getINFO(), "", "");
-        setFont(Font.Minecraft);
+        super("overlaymod_clock.yml", "Clock", Hud.Category.Companion.getINFO());
     }
 
     @Override
@@ -38,6 +35,11 @@ public class ClockHud extends TextHud {
         }
     }
 
+    @Override
+    protected String previewText() {
+        return "12:00";
+    }
+
     private DateTimeFormatter formatter() {
         if (!Objects.equals(format, cachedPattern)) {
             cachedPattern = format;
@@ -52,6 +54,6 @@ public class ClockHud extends TextHud {
 
     @Override
     public Pair<Float, Float> defaultPosition() {
-        return new Pair<>(HudManager.guiScreenWidth - getScaledWidth() - 4.0F, 4.0F);
+        return new Pair<>(HudManager.guiScreenWidth - getScaledWidth() - 3.0F, 3.0F);
     }
 }
