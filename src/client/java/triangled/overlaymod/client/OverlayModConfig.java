@@ -19,8 +19,6 @@ import triangled.overlaymod.client.utils.TextAlignment;
 import triangled.overlaymod.client.utils.TextShadow;
 
 public class OverlayModConfig extends Config {
-        public static final OverlayModConfig INSTANCE = new OverlayModConfig();
-
         @MasterToggle
         public static boolean enabled = true;
 
@@ -98,6 +96,8 @@ public class OverlayModConfig extends Config {
         public static int chatPeekScrollLines = 7;
 
         // ----------------------------------------------------------------
+
+        public static final OverlayModConfig INSTANCE = new OverlayModConfig();
 
         public OverlayModConfig() {
                 super(

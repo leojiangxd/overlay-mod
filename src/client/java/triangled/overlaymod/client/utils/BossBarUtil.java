@@ -20,12 +20,15 @@ public class BossBarUtil {
         float push = 0F;
 
         for (Hud other : HudManager.INSTANCE.getActiveInstances()) {
-            if (other instanceof BossBarHud bossBars) {
-                float[] bars = bossBars.liveScreenBounds();
-                if (bars != null && overlaps(left, top, right, bottom, bars[0], bars[1], bars[2], bars[3])) {
-                    push = Math.max(push, bars[3] + GAP - top);
-                }
-            }
+            if (!(other instanceof BossBarHud bossBars))
+                continue;
+
+            float[] bars = bossBars.liveScreenBounds();
+            if (bars == null)
+                continue;
+            if (!overlaps(left, top, right, bottom, bars[0], bars[1], bars[2], bars[3]))
+                continue;
+            push = Math.max(push, bars[3] + GAP - top);
         }
 
         if (!BossBarHud.replacesVanilla()) {

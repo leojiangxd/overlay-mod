@@ -53,6 +53,8 @@ public class ArmorHud extends LegacyHud {
                 }
             }
         }
+
+        // If the player has no armor and is in edit mode, show a default set of armor
         if (equipment.stream().allMatch(ItemStack::isEmpty) && HudManager.INSTANCE.isEditing()) {
             equipment = new ArrayList<>(List.of(
                     new ItemStack(Items.DIAMOND_HELMET),
