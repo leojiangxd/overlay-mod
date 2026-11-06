@@ -1,4 +1,4 @@
-package triangled.overlaymod.mixin;
+package triangled.overlaymod.client.mixin;
 
 import net.minecraft.client.gui.Hud;
 import net.minecraft.client.gui.components.BossHealthOverlay;
@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(Hud.class)
 public interface HudAccessor {
-
     @Accessor("bossOverlay")
     BossHealthOverlay getBossOverlayField();
 }

@@ -1,0 +1,21 @@
+{
+	"required": true,
+	"package": "triangled.overlaymod.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"BossHealthOverlayAccessor",
+		"ChatPeekChatComponentMixin",
+		"ChatPeekHudMixin",
+		"ChatPeekMouseHandlerMixin",
+		"DurabilityTextMixin",
+		"HideVanillaBossBarsMixin",
+		"HideVanillaEffectsMixin",
+		"HudAccessor"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

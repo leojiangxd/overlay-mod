@@ -1,5 +1,7 @@
-package triangled.overlaymod.util;
+package triangled.overlaymod.client.utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.locale.Language;
@@ -11,77 +13,53 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.FormattedCharSink;
 import net.minecraft.util.StringDecomposer;
-import triangled.overlaymod.config.OverlayModConfig.TextShadow;
 
-import java.util.ArrayList;
-import java.util.List;
+public final class TextRenderUtil {
+    private TextRenderUtil() {
+    }
 
-public class TextRenderUtil {
     public static void drawText(GuiGraphicsExtractor graphics, Font font, String text, int x, int y, int color, TextShadow shadow) {
-        switch (shadow == null ? TextShadow.SHADOW : shadow) {
-            case FOUR_DIRECTION -> {
-                drawOutline(graphics, font, segments(text, color), x, y, false);
-                graphics.text(font, text, x, y, color, false);
-            }
-            case EIGHT_DIRECTION -> {
-                drawOutline(graphics, font, segments(text, color), x, y, true);
-                graphics.text(font, text, x, y, color, false);
-            }
-            case SHADOW -> graphics.text(font, text, x, y, color, true);
-            case NONE -> graphics.text(font, text, x, y, color, false);
+        TextShadow style = TextShadow.orDefault(shadow);
+        if (style.hasOutline()) {
+            RunCollector collector = new RunCollector(color);
+            StringDecomposer.iterateFormatted(text, Style.EMPTY, collector);
+            drawOutline(graphics, font, collector.finish(), x, y, style);
         }
+        graphics.text(font, text, x, y, color, style.dropShadow());
     }
 
     public static void drawText(GuiGraphicsExtractor graphics, Font font, Component text, int x, int y, int color, TextShadow shadow) {
-        switch (shadow == null ? TextShadow.SHADOW : shadow) {
-            case FOUR_DIRECTION -> {
-                drawOutline(graphics, font, segments(text, color), x, y, false);
-                graphics.text(font, text, x, y, color, false);
-            }
-            case EIGHT_DIRECTION -> {
-                drawOutline(graphics, font, segments(text, color), x, y, true);
-                graphics.text(font, text, x, y, color, false);
-            }
-            case SHADOW -> graphics.text(font, text, x, y, color, true);
-            case NONE -> graphics.text(font, text, x, y, color, false);
+        TextShadow style = TextShadow.orDefault(shadow);
+        if (style.hasOutline()) {
+            RunCollector collector = new RunCollector(color);
+            text.getVisualOrderText().accept(collector);
+            drawOutline(graphics, font, collector.finish(), x, y, style);
         }
+        graphics.text(font, text, x, y, color, style.dropShadow());
     }
 
-    private static void drawOutline(GuiGraphicsExtractor graphics, Font font, List<ColorSegment> segments, int x, int y, boolean diagonals) {
+    public static Bounds textBounds(Font font, int width, float x, float y, float scale, TextShadow shadow) {
+        Insets insets = TextShadow.orDefault(shadow).insets();
+        return new Bounds(
+                x - insets.left() * scale,
+                y - insets.top() * scale,
+                x + (width + insets.right()) * scale,
+                y + (font.lineHeight - 1 + insets.bottom()) * scale);
+    }
+
+    private static void drawOutline(GuiGraphicsExtractor graphics, Font font, List<ColorSegment> segments, int x, int y, TextShadow shadow) {
         int cursorX = x;
         for (ColorSegment segment : segments) {
-            int shadowColor = shadowColor(segment.color());
-            FormattedCharSequence s = segment.text();
-
-            graphics.text(font, s, cursorX - 1, y, shadowColor, false);
-            graphics.text(font, s, cursorX + 1, y, shadowColor, false);
-            graphics.text(font, s, cursorX, y - 1, shadowColor, false);
-            graphics.text(font, s, cursorX, y + 1, shadowColor, false);
-            if (diagonals) {
-                graphics.text(font, s, cursorX - 1, y - 1, shadowColor, false);
-                graphics.text(font, s, cursorX + 1, y - 1, shadowColor, false);
-                graphics.text(font, s, cursorX - 1, y + 1, shadowColor, false);
-                graphics.text(font, s, cursorX + 1, y + 1, shadowColor, false);
+            int outlineColor = outlineColor(segment.color());
+            for (TextShadow.Offset offset : shadow.outline()) {
+                graphics.text(font, segment.text(), cursorX + offset.dx(), y + offset.dy(), outlineColor, false);
             }
-
-            cursorX += font.width(s);
+            cursorX += font.width(segment.text());
         }
     }
 
-    private static int shadowColor(int color) {
+    private static int outlineColor(int color) {
         return (color & 0xFCFCFC) >> 2 | (color & 0xFF000000);
-    }
-
-    private static List<ColorSegment> segments(String text, int baseColor) {
-        RunCollector collector = new RunCollector(baseColor);
-        StringDecomposer.iterateFormatted(text, Style.EMPTY, collector);
-        return collector.finish();
-    }
-
-    private static List<ColorSegment> segments(Component text, int baseColor) {
-        RunCollector collector = new RunCollector(baseColor);
-        StringDecomposer.iterateFormatted(text, Style.EMPTY, collector);
-        return collector.finish();
     }
 
     private static int resolveColor(Style style, int baseColor) {

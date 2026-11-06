@@ -1,0 +1,7 @@
+[19:15:31] [main/INFO]: generated new HUD config for Coordinates -> huds/3425-coordinates_hud.yml
+[19:15:31] [main/INFO]: Welcome to OneConfig!
+[19:15:31] [main/INFO]: opened config manager onto root (no profile)
+[19:15:31] [main/WARN]: Serializer already registered for extension .yaml
+[19:15:31] [main/WARN]: Serializer already registered for extension .yml
+[19:15:31] [main/INFO]: installed watcher to ./config
+[19:15:31] [OneConfig Config Save/INFO]: shutdown requested; saving all configs in ./config

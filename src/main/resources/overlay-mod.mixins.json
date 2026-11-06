@@ -3,12 +3,6 @@
 	"package": "triangled.overlaymod.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"BossHealthOverlayAccessor",
-		"HudAccessor",
-		"ScaleBossBarMixin",
-		"EquipmentOverlayMixin",
-		"StatusEffectOverlayMixin",
-		"DurabilityTextMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
