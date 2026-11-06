@@ -6,6 +6,7 @@ import java.util.List;
 import kotlin.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -15,12 +16,13 @@ import net.minecraft.world.item.Items;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
 import org.polyfrost.oneconfig.api.hud.v1.HudManager;
-import org.polyfrost.oneconfig.api.hud.v1.LegacyHud;
 
-public class ArmorHud extends LegacyHud {
+public class ArmorHud extends OverlayHud {
     private static final Identifier HOTBAR_SPRITE = Identifier.withDefaultNamespace("hud/hotbar");
-    private static final int SLOT_SIZE = 20;
+    private static final int HOTBAR_WIDTH = 182;
     private static final int HOTBAR_HEIGHT = 22;
+    private static final int SLOT_SIZE = 20;
+    private static final int SLOT_PADDING = 3;
 
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
@@ -43,24 +45,9 @@ public class ArmorHud extends LegacyHud {
     }
 
     private List<ItemStack> equipment() {
-        Minecraft mc = Minecraft.getInstance();
-        List<ItemStack> equipment = new ArrayList<>(ARMOR_SLOTS.length);
-        if (mc != null && mc.getCameraEntity() instanceof Player player) {
-            for (EquipmentSlot slot : ARMOR_SLOTS) {
-                ItemStack stack = player.getItemBySlot(slot);
-                if (showEmptyArmor || !stack.isEmpty()) {
-                    equipment.add(stack);
-                }
-            }
-        }
-
-        // If the player has no armor and is in edit mode, show a default set of armor
-        if (equipment.stream().allMatch(ItemStack::isEmpty) && HudManager.INSTANCE.isEditing()) {
-            equipment = new ArrayList<>(List.of(
-                    new ItemStack(Items.DIAMOND_HELMET),
-                    new ItemStack(Items.DIAMOND_CHESTPLATE),
-                    new ItemStack(Items.DIAMOND_LEGGINGS),
-                    new ItemStack(Items.DIAMOND_BOOTS)));
+        List<ItemStack> equipment = wornArmor();
+        if (equipment.stream().allMatch(ItemStack::isEmpty) && isEditing()) {
+            equipment = previewArmor();
         }
         if (reverseArmorOrder) {
             Collections.reverse(equipment);
@@ -68,37 +55,45 @@ public class ArmorHud extends LegacyHud {
         return equipment;
     }
 
-    private float length(int count) {
-        return count * SLOT_SIZE + 2;
+    private List<ItemStack> wornArmor() {
+        List<ItemStack> armor = new ArrayList<>(ARMOR_SLOTS.length);
+        if (Minecraft.getInstance().getCameraEntity() instanceof Player player) {
+            for (EquipmentSlot slot : ARMOR_SLOTS) {
+                ItemStack stack = player.getItemBySlot(slot);
+                if (showEmptyArmor || !stack.isEmpty()) {
+                    armor.add(stack);
+                }
+            }
+        }
+        return armor;
+    }
+
+    private static List<ItemStack> previewArmor() {
+        return new ArrayList<>(List.of(
+                new ItemStack(Items.DIAMOND_HELMET),
+                new ItemStack(Items.DIAMOND_CHESTPLATE),
+                new ItemStack(Items.DIAMOND_LEGGINGS),
+                new ItemStack(Items.DIAMOND_BOOTS)));
+    }
+
+    private float length() {
+        return Math.max(1, equipment().size()) * SLOT_SIZE + 2;
     }
 
     @Override
     public float getWidth() {
-        return vertical ? HOTBAR_HEIGHT : length(Math.max(1, equipment().size()));
+        return vertical ? HOTBAR_HEIGHT : length();
     }
 
     @Override
     public float getHeight() {
-        return vertical ? length(Math.max(1, equipment().size())) : HOTBAR_HEIGHT;
+        return vertical ? length() : HOTBAR_HEIGHT;
     }
 
     @Override
     public boolean shouldShow() {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc == null || mc.player == null || mc.player.isSpectator()) {
-            return false;
-        }
-        return !equipment().isEmpty();
-    }
-
-    @Override
-    public boolean update() {
-        return false;
-    }
-
-    @Override
-    public boolean multipleInstancesAllowed() {
-        return false;
+        LocalPlayer player = player();
+        return player != null && !player.isSpectator() && !equipment().isEmpty();
     }
 
     @Override
@@ -117,33 +112,34 @@ public class ArmorHud extends LegacyHud {
             drawBackground(graphics, equipment.size());
         }
 
-        Minecraft mc = Minecraft.getInstance();
         for (int i = 0; i < equipment.size(); i++) {
             ItemStack stack = equipment.get(i);
-            int x = vertical ? 3 : 3 + i * SLOT_SIZE;
-            int y = vertical ? 3 + i * SLOT_SIZE : 3;
+            int along = SLOT_PADDING + i * SLOT_SIZE;
+            int x = vertical ? SLOT_PADDING : along;
+            int y = vertical ? along : SLOT_PADDING;
             graphics.item(stack, x, y, i);
-            graphics.itemDecorations(mc.font, stack, x, y);
+            graphics.itemDecorations(font(), stack, x, y);
         }
     }
 
     private void drawBackground(GuiGraphicsExtractor graphics, int count) {
-        int half = count * SLOT_SIZE / 2 + 1;
         if (!vertical) {
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, HOTBAR_SPRITE, 182, HOTBAR_HEIGHT, 0, 0,
-                    0, 0, half, HOTBAR_HEIGHT);
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, HOTBAR_SPRITE, 182, HOTBAR_HEIGHT, 182 - half, 0,
-                    half, 0, half, HOTBAR_HEIGHT);
+            drawHotbarEnds(graphics, count);
             return;
         }
-
         graphics.pose().pushMatrix();
         graphics.pose().translate(HOTBAR_HEIGHT, 0);
         graphics.pose().rotate((float) (Math.PI / 2));
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, HOTBAR_SPRITE, 182, HOTBAR_HEIGHT, 0, 0,
-                0, 0, half, HOTBAR_HEIGHT);
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, HOTBAR_SPRITE, 182, HOTBAR_HEIGHT, 182 - half, 0,
-                half, 0, half, HOTBAR_HEIGHT);
+        drawHotbarEnds(graphics, count);
         graphics.pose().popMatrix();
+    }
+
+    private static void drawHotbarEnds(GuiGraphicsExtractor graphics, int count) {
+        int half = count * SLOT_SIZE / 2 + 1;
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, HOTBAR_SPRITE, HOTBAR_WIDTH, HOTBAR_HEIGHT, 0, 0,
+                0, 0, half, HOTBAR_HEIGHT);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, HOTBAR_SPRITE, HOTBAR_WIDTH, HOTBAR_HEIGHT,
+                HOTBAR_WIDTH - half, 0,
+                half, 0, half, HOTBAR_HEIGHT);
     }
 }

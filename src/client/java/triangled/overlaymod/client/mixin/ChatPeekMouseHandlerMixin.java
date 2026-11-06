@@ -6,8 +6,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import triangled.overlaymod.client.ChatPeek;
 import triangled.overlaymod.client.OverlayModConfig;
+import triangled.overlaymod.client.feature.ChatPeek;
 
 @Mixin(MouseHandler.class)
 public class ChatPeekMouseHandlerMixin {
@@ -16,12 +16,12 @@ public class ChatPeekMouseHandlerMixin {
         if (!OverlayModConfig.chatPeekScroll || !ChatPeek.isPeeking() || yoffset == 0.0) {
             return;
         }
-        Minecraft client = Minecraft.getInstance();
-        if (client.player == null || client.gui == null || client.gui.hud == null) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.gui == null || mc.gui.hud == null) {
             return;
         }
         int lines = OverlayModConfig.chatPeekScrollLines;
-        client.gui.hud.getChat().scrollChat(yoffset > 0.0 ? lines : -lines);
+        mc.gui.hud.getChat().scrollChat(yoffset > 0.0 ? lines : -lines);
         ci.cancel();
     }
 }

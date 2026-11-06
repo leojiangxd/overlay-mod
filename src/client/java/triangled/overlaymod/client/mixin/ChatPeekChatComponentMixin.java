@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.client.gui.components.ChatComponent;
 import org.spongepowered.asm.mixin.Mixin;
-import triangled.overlaymod.client.ChatPeek;
+import triangled.overlaymod.client.feature.ChatPeek;
 
 @Mixin(ChatComponent.class)
 public class ChatPeekChatComponentMixin {

@@ -1,26 +1,24 @@
 package triangled.overlaymod.client.hud;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import org.polyfrost.compose.render.PolyColor;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Color;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Dropdown;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
-import org.polyfrost.oneconfig.api.hud.v1.HudManager;
-import org.polyfrost.oneconfig.api.hud.v1.LegacyHud;
+import triangled.overlaymod.client.utils.Colors;
 import triangled.overlaymod.client.utils.FormatCodes;
+import triangled.overlaymod.client.utils.Insets;
 import triangled.overlaymod.client.utils.TextRenderUtil;
 import triangled.overlaymod.client.utils.TextShadow;
 
-public abstract class MinecraftTextHud extends LegacyHud {
+public abstract class MinecraftTextHud extends OverlayHud {
     // ---------------------------------------------------------------- Style
 
     @Dropdown(title = "Text Shadow", description = "How the text is shadowed or outlined", subcategory = "Style")
     public TextShadow minecraftTextShadow = TextShadow.SHADOW;
 
     @Color(title = "Text Color", description = "Colour of any text not coloured by a formatting code", subcategory = "Style")
-    public PolyColor minecraftTextColor = new PolyColor(0xFFFFFFFF, false, 1.0F);
+    public PolyColor minecraftTextColor = Colors.white();
 
     protected MinecraftTextHud(String id, String title, Hud.Category category) {
         super(id, title, category);
@@ -32,26 +30,24 @@ public abstract class MinecraftTextHud extends LegacyHud {
 
     private String displayText() {
         String text = getText();
-        if ((text == null || text.isEmpty()) && HudManager.INSTANCE.isEditing()) {
+        if ((text == null || text.isEmpty()) && isEditing()) {
             text = previewText();
         }
         return FormatCodes.replaceAnd(text);
     }
 
-    private static Font font() {
-        return Minecraft.getInstance().font;
+    private Insets insets() {
+        return TextShadow.orDefault(minecraftTextShadow).insets();
     }
 
     @Override
     public float getWidth() {
-        TextRenderUtil.Extent extent = TextRenderUtil.shadowExtent(minecraftTextShadow);
-        return font().width(displayText()) + extent.left() + extent.right();
+        return font().width(displayText()) + insets().horizontal();
     }
 
     @Override
     public float getHeight() {
-        TextRenderUtil.Extent extent = TextRenderUtil.shadowExtent(minecraftTextShadow);
-        return font().lineHeight - 1 + extent.top() + extent.bottom();
+        return font().lineHeight - 1 + insets().vertical();
     }
 
     @Override
@@ -60,18 +56,13 @@ public abstract class MinecraftTextHud extends LegacyHud {
     }
 
     @Override
-    public boolean update() {
-        return false;
-    }
-
-    @Override
     public void render(GuiGraphicsExtractor graphics) {
         String text = displayText();
         if (text.isEmpty()) {
             return;
         }
-        TextRenderUtil.Extent extent = TextRenderUtil.shadowExtent(minecraftTextShadow);
-        int color = minecraftTextColor == null ? 0xFFFFFFFF : minecraftTextColor.getArgb();
-        TextRenderUtil.drawText(graphics, font(), text, extent.left(), extent.top(), color, minecraftTextShadow);
+        Insets insets = insets();
+        TextRenderUtil.drawText(graphics, font(), text, insets.left(), insets.top(),
+                Colors.argb(minecraftTextColor), minecraftTextShadow);
     }
 }

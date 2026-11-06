@@ -18,10 +18,10 @@ public class SprintingHud extends MinecraftTextHud {
 
     @Override
     protected String getText() {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc == null || mc.player == null) {
+        if (player() == null) {
             return "";
         }
+        Minecraft mc = Minecraft.getInstance();
         if (mc.gui.screen() == null) {
             sprintIntentActive = mc.options.keySprint.isDown();
         }

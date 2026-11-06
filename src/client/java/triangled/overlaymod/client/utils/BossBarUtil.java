@@ -1,63 +1,57 @@
 package triangled.overlaymod.client.utils;
 
-import org.polyfrost.oneconfig.api.hud.v1.Hud;
 import org.polyfrost.oneconfig.api.hud.v1.HudManager;
 import org.polyfrost.oneconfig.api.hud.v1.LegacyHud;
 import triangled.overlaymod.client.hud.BossBarHud;
+import triangled.overlaymod.client.hud.OverlayHud;
 
-public class BossBarUtil {
+public final class BossBarUtil {
     private static final float GAP = 1.0F;
+    private static final int VANILLA_FIRST_BAR_Y = 12;
 
     private BossBarUtil() {
     }
 
     public static float pushDown(LegacyHud hud) {
         float scale = Math.max(0.01F, hud.getFrameScale());
-        float left = hud.getFrameX();
-        float top = hud.getFrameY();
-        float right = left + hud.getWidth() * scale;
-        float bottom = top + hud.getHeight() * scale;
+        Bounds frame = Bounds.ofSize(hud.getFrameX(), hud.getFrameY(), hud.getWidth() * scale, hud.getHeight() * scale);
         float push = 0F;
 
-        for (Hud other : HudManager.INSTANCE.getActiveInstances()) {
-            if (!(other instanceof BossBarHud bossBars))
-                continue;
-
-            float[] bars = bossBars.liveScreenBounds();
-            if (bars == null)
-                continue;
-            if (!overlaps(left, top, right, bottom, bars[0], bars[1], bars[2], bars[3]))
-                continue;
-            push = Math.max(push, bars[3] + GAP - top);
+        for (BossBarHud bossBars : OverlayHud.activeHuds(BossBarHud.class)) {
+            push = Math.max(push, pushBelow(frame, bossBars.liveScreenBounds()));
         }
-
         if (!BossBarHud.replacesVanilla()) {
-            float barsBottom = vanillaBottom();
-            float center = HudManager.guiScreenWidth / 2F;
-            if (barsBottom > 0 && overlaps(left, top, right, bottom, center - 91, 3F, center + 91, barsBottom)) {
-                push = Math.max(push, barsBottom + GAP - top);
-            }
+            push = Math.max(push, pushBelow(frame, vanillaBounds()));
         }
 
         return push / scale;
     }
 
-    private static boolean overlaps(float l1, float t1, float r1, float b1, float l2, float t2, float r2, float b2) {
-        return l1 < r2 && l2 < r1 && t1 < b2 && t2 < b1;
-    }
-
-    private static float vanillaBottom() {
-        int count = BossBarHud.liveEvents().size();
-        if (count <= 0) {
+    private static float pushBelow(Bounds frame, Bounds bars) {
+        if (bars == null || !frame.overlaps(bars)) {
             return 0F;
         }
-        float next = 12F;
+        return bars.bottom() + GAP - frame.top();
+    }
+
+    private static Bounds vanillaBounds() {
+        int count = BossBarHud.liveEvents().size();
+        if (count <= 0) {
+            return null;
+        }
+        float nextBarY = VANILLA_FIRST_BAR_Y;
         for (int i = 0; i < count; i++) {
-            next += 19F;
-            if (next >= HudManager.guiScreenHeight / 3F) {
+            nextBarY += BossBarHud.STRIDE;
+            if (nextBarY >= HudManager.guiScreenHeight / 3F) {
                 break;
             }
         }
-        return next - 14F;
+        float center = HudManager.guiScreenWidth / 2F;
+        float halfWidth = BossBarHud.BAR_WIDTH / 2F;
+        return new Bounds(
+                center - halfWidth,
+                VANILLA_FIRST_BAR_Y - BossBarHud.NAME_HEIGHT,
+                center + halfWidth,
+                nextBarY - BossBarHud.STRIDE + BossBarHud.BAR_HEIGHT);
     }
 }

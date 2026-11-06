@@ -2,64 +2,47 @@ package triangled.overlaymod.client.hud;
 
 import java.util.Locale;
 import kotlin.Pair;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Slider;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Text;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
-import triangled.overlaymod.client.utils.Facing;
+import triangled.overlaymod.client.utils.AxisSign;
+import triangled.overlaymod.client.utils.CompassDirection;
 
 public class CoordinatesHud extends MinecraftTextHud {
-    private static final int SIGN_NONE = 0;
-    private static final int SIGN_POS = 1;
-    private static final int SIGN_NEG = 2;
-
-    private static final int[] X_SIGN = {SIGN_NONE, SIGN_POS, SIGN_POS, SIGN_POS, SIGN_NONE, SIGN_NEG, SIGN_NEG, SIGN_NEG};
-    private static final int[] Z_SIGN = {SIGN_NEG, SIGN_NEG, SIGN_NONE, SIGN_POS, SIGN_POS, SIGN_POS, SIGN_NONE, SIGN_NEG};
-
     // ---------------------------------------------------------------- Coordinates
 
-    @Slider(title = "Precision", description = "Decimal places shown for each coordinate",
-            min = 0, max = 10, step = 1, subcategory = "Coordinates")
+    @Slider(title = "Precision", description = "Decimal places shown for each coordinate", min = 0, max = 10, step = 1, subcategory = "Coordinates")
     public int precision = 0;
 
-    @Switch(title = "Show Labels", description = "Show the X/Y/Z labels before each coordinate",
-            subcategory = "Coordinates")
+    @Switch(title = "Show Labels", description = "Show the X/Y/Z labels before each coordinate", subcategory = "Coordinates")
     public boolean showLabels = true;
 
-    @Text(title = "X Label", description = "Text shown before the X coordinate. & starts a formatting code, \\& is a literal &",
-            subcategory = "Coordinates")
+    @Text(title = "X Label", description = "Text shown before the X coordinate. & starts a formatting code, \\& is a literal &", subcategory = "Coordinates")
     public String labelX = "&r";
 
-    @Text(title = "Y Label", description = "Text shown before the Y coordinate. & starts a formatting code, \\& is a literal &",
-            subcategory = "Coordinates")
+    @Text(title = "Y Label", description = "Text shown before the Y coordinate. & starts a formatting code, \\& is a literal &", subcategory = "Coordinates")
     public String labelY = "&r";
 
-    @Text(title = "Z Label", description = "Text shown before the Z coordinate. & starts a formatting code, \\& is a literal &",
-            subcategory = "Coordinates")
+    @Text(title = "Z Label", description = "Text shown before the Z coordinate. & starts a formatting code, \\& is a literal &", subcategory = "Coordinates")
     public String labelZ = "&r";
 
-    @Text(title = "Separator", description = "Text placed between each coordinate",
-            subcategory = "Coordinates")
+    @Text(title = "Separator", description = "Text placed between each coordinate", subcategory = "Coordinates")
     public String separator = "&e, ";
 
     // ---------------------------------------------------------------- Axis Signs
 
-    @Switch(title = "Axis Signs", description = "Show the axis sign after X and Z to indicate which way you are facing",
-            subcategory = "Axis Signs")
+    @Switch(title = "Axis Signs", description = "Show the axis sign after X and Z to indicate which way you are facing", subcategory = "Axis Signs")
     public boolean axisSigns = true;
 
-    @Text(title = "Positive Sign", description = "Text shown when the axis value is increasing",
-            subcategory = "Axis Signs")
+    @Text(title = "Positive Sign", description = "Text shown when the axis value is increasing", subcategory = "Axis Signs")
     public String signPos = "&e⁽⁺⁾";
 
-    @Text(title = "Negative Sign", description = "Text shown when the axis value is decreasing",
-            subcategory = "Axis Signs")
+    @Text(title = "Negative Sign", description = "Text shown when the axis value is decreasing", subcategory = "Axis Signs")
     public String signNeg = "&e⁽⁻⁾";
 
-    @Text(title = "Neutral Sign", description = "Text shown when the axis is not changing",
-            subcategory = "Axis Signs")
+    @Text(title = "Neutral Sign", description = "Text shown when the axis is not changing", subcategory = "Axis Signs")
     public String signNone = "";
 
     public CoordinatesHud() {
@@ -68,43 +51,45 @@ public class CoordinatesHud extends MinecraftTextHud {
 
     @Override
     protected String getText() {
-        Minecraft mc = Minecraft.getInstance();
-        LocalPlayer player = mc == null ? null : mc.player;
-
+        LocalPlayer player = player();
         if (player == null) {
             return "";
         }
-
-        String x = coordinate(player.getX());
-        String y = coordinate(player.getY());
-        String z = coordinate(player.getZ());
-
-        int facing = Facing.index(player.getYRot(1.0F), 8);
-
-        StringBuilder text = new StringBuilder(48);
-        if (showLabels) text.append(labelX);
-        text.append(x);
-        if (axisSigns) text.append(X_SIGN[facing] == SIGN_POS ? signPos : X_SIGN[facing] == SIGN_NEG ? signNeg : signNone);
-        text.append(separator);
-        if (showLabels) text.append(labelY);
-        text.append(y);
-        text.append(separator);
-        if (showLabels) text.append(labelZ);
-        text.append(z);
-        if (axisSigns) text.append(Z_SIGN[facing] == SIGN_POS ? signPos : Z_SIGN[facing] == SIGN_NEG ? signNeg : signNone);
-        return text.toString();
+        CompassDirection facing = axisSigns ? CompassDirection.fromYaw(player.getYRot(1.0F), true) : null;
+        return coordinates(player.getX(), player.getY(), player.getZ(), facing);
     }
 
     @Override
     protected String previewText() {
-        StringBuilder text = new StringBuilder(48);
-        if (showLabels) text.append(labelX);
-        text.append(coordinate(0)).append(separator);
-        if (showLabels) text.append(labelY);
-        text.append(coordinate(64)).append(separator);
-        if (showLabels) text.append(labelZ);
-        text.append(coordinate(0));
+        return coordinates(0, 64, 0, null);
+    }
+
+    private String coordinates(double x, double y, double z, CompassDirection facing) {
+        StringBuilder text = new StringBuilder(32);
+        appendAxis(text, labelX, x, facing == null ? null : facing.xSign());
+        text.append(separator);
+        appendAxis(text, labelY, y, null);
+        text.append(separator);
+        appendAxis(text, labelZ, z, facing == null ? null : facing.zSign());
         return text.toString();
+    }
+
+    private void appendAxis(StringBuilder text, String label, double value, AxisSign sign) {
+        if (showLabels) {
+            text.append(label);
+        }
+        text.append(coordinate(value));
+        if (sign != null) {
+            text.append(signText(sign));
+        }
+    }
+
+    private String signText(AxisSign sign) {
+        return switch (sign) {
+            case POSITIVE -> signPos;
+            case NEGATIVE -> signNeg;
+            case NONE -> signNone;
+        };
     }
 
     private String coordinate(double value) {

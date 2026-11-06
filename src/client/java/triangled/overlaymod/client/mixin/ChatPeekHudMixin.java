@@ -8,7 +8,7 @@ import net.minecraft.client.gui.screens.ChatScreen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-import triangled.overlaymod.client.ChatPeek;
+import triangled.overlaymod.client.feature.ChatPeek;
 
 @Mixin(Hud.class)
 public class ChatPeekHudMixin {

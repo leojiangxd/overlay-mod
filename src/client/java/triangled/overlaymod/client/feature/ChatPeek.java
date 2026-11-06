@@ -1,7 +1,8 @@
-package triangled.overlaymod.client;
+package triangled.overlaymod.client.feature;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
+import triangled.overlaymod.client.OverlayModConfig;
 
 public final class ChatPeek {
     private static boolean keyHeld = false;
@@ -15,7 +16,7 @@ public final class ChatPeek {
         return peeking;
     }
 
-    static void setKeyHeld(boolean held) {
+    public static void setKeyHeld(boolean held) {
         if (held && !keyHeld && OverlayModConfig.chatPeekToggle) {
             toggledOn = !toggledOn;
         }

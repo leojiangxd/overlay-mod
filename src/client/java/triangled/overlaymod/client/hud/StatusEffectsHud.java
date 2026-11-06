@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import kotlin.Pair;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
@@ -22,53 +22,52 @@ import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Text;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
 import org.polyfrost.oneconfig.api.hud.v1.HudManager;
-import org.polyfrost.oneconfig.api.hud.v1.LegacyHud;
 import triangled.overlaymod.client.utils.BossBarUtil;
+import triangled.overlaymod.client.utils.Bounds;
+import triangled.overlaymod.client.utils.Colors;
 import triangled.overlaymod.client.utils.DurationFormatUtil;
 import triangled.overlaymod.client.utils.FormatCodes;
 import triangled.overlaymod.client.utils.TextAlignment;
 import triangled.overlaymod.client.utils.TextRenderUtil;
 import triangled.overlaymod.client.utils.TextShadow;
 
-public class StatusEffectsHud extends LegacyHud {
+public class StatusEffectsHud extends OverlayHud {
     private static final int ICON_SIZE = 24;
+    private static final int ICON_INSET = 3;
+    private static final int SPRITE_SIZE = 18;
+    private static final int TICKS_PER_SECOND = 20;
+    private static final float AMPLIFIER_BASELINE = 8;
+    private static final float DURATION_BASELINE = 23;
     private static final Identifier EFFECT_BACKGROUND = Identifier.withDefaultNamespace("hud/effect_background");
-    private static final Identifier EFFECT_BACKGROUND_AMBIENT = Identifier.withDefaultNamespace("hud/effect_background_ambient");
+    private static final Identifier EFFECT_BACKGROUND_AMBIENT = Identifier
+            .withDefaultNamespace("hud/effect_background_ambient");
 
     // ---------------------------------------------------------------- Visibility
 
-    @Switch(title = "Hide Vanilla Effects", description = "Hide the vanilla effect icons in the top-right corner while this HUD is shown",
-            subcategory = "Visibility")
+    @Switch(title = "Hide Vanilla Effects", description = "Hide the vanilla effect icons in the top-right corner while this HUD is shown", subcategory = "Visibility")
     public boolean hideVanilla = true;
 
-    @Switch(title = "Move Below Boss Bars", description = "Move the HUD down while boss bars above it would overlap it",
-            subcategory = "Visibility")
+    @Switch(title = "Move Below Boss Bars", description = "Move the HUD down while boss bars above it would overlap it", subcategory = "Visibility")
     public boolean belowBossBars = true;
 
-    @Switch(title = "Render Background", description = "Draw the vanilla effect frame behind each icon",
-            subcategory = "Visibility")
+    @Switch(title = "Render Background", description = "Draw the vanilla effect frame behind each icon", subcategory = "Visibility")
     public boolean renderBackground = false;
 
-    @Switch(title = "Separate Negative Effects", description = "Put harmful effects on their own row below beneficial ones",
-            subcategory = "Visibility")
+    @Switch(title = "Separate Negative Effects", description = "Put harmful effects on their own row below beneficial ones", subcategory = "Visibility")
     public boolean separateNegative = true;
 
-    @Switch(title = "Show Amplifier", description = "Show the effect level on the icon",
-            subcategory = "Visibility")
+    @Switch(title = "Show Amplifier", description = "Show the effect level on the icon", subcategory = "Visibility")
     public boolean renderAmplifier = true;
 
-    @Switch(title = "Subscript Amplifier", description = "Draw the effect level using subscript digits",
-            subcategory = "Visibility")
+    @Switch(title = "Subscript Amplifier", description = "Draw the effect level using subscript digits", subcategory = "Visibility")
     public boolean subscriptAmplifier = true;
 
-    @Switch(title = "Show Duration", description = "Show the time remaining under each icon",
-            subcategory = "Visibility")
+    @Switch(title = "Show Duration", description = "Show the time remaining under each icon", subcategory = "Visibility")
     public boolean renderDuration = true;
 
     // ---------------------------------------------------------------- Text
 
-    @Text(title = "Seconds Format", description = "Under a minute. d/h/m/s are replaced, repeat a letter to zero-pad, \\ escapes",
-            subcategory = "Text")
+    @Text(title = "Seconds Format", description = "Under a minute", subcategory = "Text")
     public String secondsFormat = "0:ss";
 
     @Text(title = "Minutes Format", description = "Under ten minutes", subcategory = "Text")
@@ -83,27 +82,22 @@ public class StatusEffectsHud extends LegacyHud {
     @Text(title = "Days Format", description = "A day or longer", subcategory = "Text")
     public String dayFormat = "d\\d";
 
-    @Text(title = "Amplifier Prefix", description = "Text before the level. & starts a formatting code, \\& is a literal &",
-            subcategory = "Text")
+    @Text(title = "Amplifier Prefix", description = "Text before the level. & starts a formatting code, \\& is a literal &", subcategory = "Text")
     public String amplifierText = "&f";
 
-    @Text(title = "Ambient Amplifier Prefix", description = "Text before the level of a beacon/conduit effect",
-            subcategory = "Text")
+    @Text(title = "Ambient Amplifier Prefix", description = "Text before the level of a beacon/conduit effect", subcategory = "Text")
     public String ambientAmplifierText = "&e";
 
     @Text(title = "Duration Prefix", description = "Text before the duration", subcategory = "Text")
     public String durationText = "&f";
 
-    @Text(title = "Ambient Duration Prefix", description = "Text before the duration of a beacon/conduit effect",
-            subcategory = "Text")
+    @Text(title = "Ambient Duration Prefix", description = "Text before the duration of a beacon/conduit effect", subcategory = "Text")
     public String ambientDurationText = "&e";
 
-    @Text(title = "Expiring Prefix", description = "Text before the duration once the effect is about to run out",
-            subcategory = "Text")
+    @Text(title = "Expiring Prefix", description = "Text before the duration once the effect is about to run out", subcategory = "Text")
     public String expirationText = "&c";
 
-    @Slider(title = "Expiring Threshold", description = "Seconds left at which an effect counts as expiring and starts blinking",
-            min = 0, max = 59, step = 1, subcategory = "Text")
+    @Slider(title = "Expiring Threshold", description = "Seconds left at which an effect counts as expiring and starts blinking", min = 0, max = 59, step = 1, subcategory = "Text")
     public int expirationDuration = 10;
 
     // ---------------------------------------------------------------- Style
@@ -115,19 +109,19 @@ public class StatusEffectsHud extends LegacyHud {
     public TextShadow durationTextShadow = TextShadow.SHADOW;
 
     @Color(title = "Amplifier Color", subcategory = "Style")
-    public PolyColor amplifierColor = new PolyColor(0xFFFFFFFF, false, 1.0F);
+    public PolyColor amplifierColor = Colors.white();
 
     @Color(title = "Ambient Amplifier Color", subcategory = "Style")
-    public PolyColor ambientAmplifierColor = new PolyColor(0xFFFFFFFF, false, 1.0F);
+    public PolyColor ambientAmplifierColor = Colors.white();
 
     @Color(title = "Duration Color", subcategory = "Style")
-    public PolyColor durationColor = new PolyColor(0xFFFFFFFF, false, 1.0F);
+    public PolyColor durationColor = Colors.white();
 
     @Color(title = "Ambient Duration Color", subcategory = "Style")
-    public PolyColor ambientDurationColor = new PolyColor(0xFFFFFFFF, false, 1.0F);
+    public PolyColor ambientDurationColor = Colors.white();
 
     @Color(title = "Expiring Color", subcategory = "Style")
-    public PolyColor expirationColor = new PolyColor(0xFFFFFFFF, false, 1.0F);
+    public PolyColor expirationColor = Colors.white();
 
     // ---------------------------------------------------------------- Layout
 
@@ -137,8 +131,7 @@ public class StatusEffectsHud extends LegacyHud {
     @Slider(title = "Effect Gap", description = "Space between icons", min = -8, max = 16, step = 1, subcategory = "Layout")
     public int effectGap = 1;
 
-    @Number(title = "Row Gap", description = "Space between the beneficial and harmful rows",
-            min = -24, max = 64, subcategory = "Layout")
+    @Number(title = "Row Gap", description = "Space between the beneficial and harmful rows", min = -24, max = 64, subcategory = "Layout")
     public float rowGap = 8.0F;
 
     @Number(title = "Amplifier Scale", min = 0.1F, max = 4, subcategory = "Layout")
@@ -159,28 +152,69 @@ public class StatusEffectsHud extends LegacyHud {
     @Number(title = "Duration Y Offset", description = "Positive moves up", min = -32, max = 32, subcategory = "Layout")
     public float durationYOffset = 0.0F;
 
-    public StatusEffectsHud() {
-        super("overlaymod_status_effects.yml", "Status Effects", Hud.Category.Companion.getPLAYER());
-    }
-
-    public static boolean replacesVanilla() {
-        for (Hud hud : HudManager.INSTANCE.getActiveInstances()) {
-            if (hud instanceof StatusEffectsHud effects && effects.hideVanilla && !effects.getHidden()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private record Rows(List<MobEffectInstance> top, List<MobEffectInstance> bottom) {
         boolean isEmpty() {
             return top.isEmpty() && bottom.isEmpty();
         }
     }
 
+    private record Slot(MobEffectInstance effect, float x, float y) {
+    }
+
+    private record LabelStyle(float scale, float xOffset, float yOffset, TextShadow shadow) {
+        float x(Font font, String text) {
+            return (ICON_SIZE - scale * font.width(text)) / 2f + scale * (0.5f + xOffset);
+        }
+
+        float y(Font font, float baseline, float nudge) {
+            return baseline + (font.lineHeight - scale * font.lineHeight) / 2f + scale * (nudge - yOffset);
+        }
+    }
+
+    private record Label(String text, float x, float y, LabelStyle style, int color) {
+        Bounds bounds(Font font) {
+            return TextRenderUtil.textBounds(font, font.width(text), x, y, style.scale(), style.shadow());
+        }
+
+        void draw(GuiGraphicsExtractor graphics, Font font) {
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(x, y);
+            graphics.pose().scale(style.scale(), style.scale());
+            TextRenderUtil.drawText(graphics, font, text, 0, 0, color, style.shadow());
+            graphics.pose().popMatrix();
+        }
+    }
+
+    private enum DurationTier {
+        DAYS(86400), HOURS(3600), LONG_MINUTES(600), MINUTES(60), SECONDS(0);
+
+        private final long minSeconds;
+
+        DurationTier(long minSeconds) {
+            this.minSeconds = minSeconds;
+        }
+
+        static DurationTier of(long seconds) {
+            for (DurationTier tier : values()) {
+                if (seconds >= tier.minSeconds) {
+                    return tier;
+                }
+            }
+            return SECONDS;
+        }
+    }
+
+    public StatusEffectsHud() {
+        super("overlaymod_status_effects.yml", "Status Effects", Hud.Category.Companion.getPLAYER());
+    }
+
+    public static boolean replacesVanilla() {
+        return activeHuds(StatusEffectsHud.class).stream().anyMatch(hud -> hud.hideVanilla && !hud.getHidden());
+    }
+
     private Rows rows() {
         List<MobEffectInstance> effects = activeEffects();
-        if (effects.isEmpty() && HudManager.INSTANCE.isEditing()) {
+        if (effects.isEmpty() && isEditing()) {
             effects = previewEffects();
         }
         if (!separateNegative) {
@@ -196,12 +230,12 @@ public class StatusEffectsHud extends LegacyHud {
     }
 
     private static List<MobEffectInstance> activeEffects() {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc == null || mc.player == null) {
+        LocalPlayer player = player();
+        if (player == null) {
             return List.of();
         }
         List<MobEffectInstance> effects = new ArrayList<>();
-        for (MobEffectInstance effect : mc.player.getActiveEffects()) {
+        for (MobEffectInstance effect : player.getActiveEffects()) {
             if (effect.showIcon()) {
                 effects.add(effect);
             }
@@ -212,10 +246,10 @@ public class StatusEffectsHud extends LegacyHud {
 
     private static List<MobEffectInstance> previewEffects() {
         List<MobEffectInstance> effects = new ArrayList<>(List.of(
-                new MobEffectInstance(MobEffects.SPEED, 20 * 185, 1),
-                new MobEffectInstance(MobEffects.STRENGTH, 20 * 45),
-                new MobEffectInstance(MobEffects.REGENERATION, 20 * 8, 0, true, true),
-                new MobEffectInstance(MobEffects.POISON, 20 * 12, 2)));
+                new MobEffectInstance(MobEffects.SPEED, TICKS_PER_SECOND * 185, 1),
+                new MobEffectInstance(MobEffects.STRENGTH, TICKS_PER_SECOND * 45),
+                new MobEffectInstance(MobEffects.REGENERATION, TICKS_PER_SECOND * 8, 0, true, true),
+                new MobEffectInstance(MobEffects.POISON, TICKS_PER_SECOND * 12, 2)));
         Collections.sort(effects);
         return effects;
     }
@@ -228,77 +262,47 @@ public class StatusEffectsHud extends LegacyHud {
         return count <= 0 ? 0 : (count - 1) * stride() + ICON_SIZE;
     }
 
-    private float bottomRowY() {
-        return ICON_SIZE + rowGap;
+    private List<Slot> slots(Rows rows) {
+        float width = Math.max(ICON_SIZE, Math.max(rowWidth(rows.top().size()), rowWidth(rows.bottom().size())));
+        List<Slot> slots = new ArrayList<>();
+        addRow(slots, rows.top(), width, 0);
+        addRow(slots, rows.bottom(), width, ICON_SIZE + rowGap);
+        return slots;
     }
 
-    private float durationY() {
-        float lineHeight = Minecraft.getInstance().font.lineHeight;
-        return 23 + (lineHeight - durationScale * lineHeight) / 2f + durationScale * (1.0f - durationYOffset);
-    }
-
-    private float iconRowsWidth(Rows rows) {
-        return Math.max(ICON_SIZE, Math.max(rowWidth(rows.top().size()), rowWidth(rows.bottom().size())));
-    }
-
-    private float[] bounds(Rows rows) {
-        Font font = Minecraft.getInstance().font;
-        float width = iconRowsWidth(rows);
-        float[] bounds = {Float.MAX_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE};
-        includeRow(bounds, font, rows.top(), rowX(width, rows.top().size()), 0);
-        includeRow(bounds, font, rows.bottom(), rowX(width, rows.bottom().size()), bottomRowY());
-        if (bounds[0] > bounds[2]) {
-            return new float[] {0, 0, ICON_SIZE, ICON_SIZE};
-        }
-        return bounds;
-    }
-
-    private void includeRow(float[] bounds, Font font, List<MobEffectInstance> effects, float x, float y) {
-        int inset = renderBackground ? 0 : 3;
+    private void addRow(List<Slot> slots, List<MobEffectInstance> effects, float width, float y) {
+        float x = rowAlignment.align(width - rowWidth(effects.size()));
         for (int i = 0; i < effects.size(); i++) {
-            MobEffectInstance effect = effects.get(i);
-            float effectX = x + i * stride();
-            include(bounds, new float[] {effectX + inset, y + inset, effectX + ICON_SIZE - inset, y + ICON_SIZE - inset});
-            if (renderAmplifier && effect.getAmplifier() > 0) {
-                String text = amplifierString(effect);
-                include(bounds, TextRenderUtil.textBounds(font, font.width(text), effectX + amplifierX(font, text),
-                        y + amplifierY(font), amplifierScale, amplifierTextShadow));
-            }
-            if (renderDuration) {
-                String text = durationLabel(effect);
-                include(bounds, TextRenderUtil.textBounds(font, font.width(text), effectX + durationX(font, text),
-                        y + durationY(), durationScale, durationTextShadow));
-            }
+            slots.add(new Slot(effects.get(i), x + i * stride(), y));
         }
     }
 
-    private static void include(float[] bounds, float[] box) {
-        bounds[0] = Math.min(bounds[0], box[0]);
-        bounds[1] = Math.min(bounds[1], box[1]);
-        bounds[2] = Math.max(bounds[2], box[2]);
-        bounds[3] = Math.max(bounds[3], box[3]);
+    private Bounds bounds(List<Slot> slots) {
+        Font font = font();
+        int inset = renderBackground ? 0 : ICON_INSET;
+        List<Bounds> boxes = new ArrayList<>();
+        for (Slot slot : slots) {
+            boxes.add(Bounds.ofSize(slot.x() + inset, slot.y() + inset, ICON_SIZE - 2 * inset, ICON_SIZE - 2 * inset));
+            for (Label label : labels(slot, font)) {
+                boxes.add(label.bounds(font));
+            }
+        }
+        return Bounds.enclosing(boxes).orElse(Bounds.ofSize(0, 0, ICON_SIZE, ICON_SIZE));
     }
 
     @Override
     public float getWidth() {
-        float[] bounds = bounds(rows());
-        return bounds[2] - bounds[0];
+        return bounds(slots(rows())).width();
     }
 
     @Override
     public float getHeight() {
-        float[] bounds = bounds(rows());
-        return bounds[3] - bounds[1];
+        return bounds(slots(rows())).height();
     }
 
     @Override
     public boolean shouldShow() {
         return !rows().isEmpty();
-    }
-
-    @Override
-    public boolean update() {
-        return false;
     }
 
     @Override
@@ -318,81 +322,89 @@ public class StatusEffectsHud extends LegacyHud {
             return;
         }
 
-        Minecraft mc = Minecraft.getInstance();
-        float width = iconRowsWidth(rows);
-        float[] bounds = bounds(rows);
-        float bossBarOffset = belowBossBars && !HudManager.INSTANCE.isEditing() ? BossBarUtil.pushDown(this) : 0f;
+        Font font = font();
+        List<Slot> slots = slots(rows);
+        Bounds bounds = bounds(slots);
+        float bossBarOffset = belowBossBars && !isEditing() ? BossBarUtil.pushDown(this) : 0f;
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(-bounds[0], -bounds[1] + bossBarOffset);
+        graphics.pose().translate(-bounds.left(), -bounds.top() + bossBarOffset);
 
-        float topX = rowX(width, rows.top().size());
-        float bottomX = rowX(width, rows.bottom().size());
-        drawBackgrounds(graphics, rows.top(), topX, 0);
-        drawBackgrounds(graphics, rows.bottom(), bottomX, bottomRowY());
-        drawIcons(graphics, rows.top(), topX, 0);
-        drawIcons(graphics, rows.bottom(), bottomX, bottomRowY());
-        drawText(graphics, mc.font, rows.top(), topX, 0);
-        drawText(graphics, mc.font, rows.bottom(), bottomX, bottomRowY());
+        if (renderBackground) {
+            slots.forEach(slot -> drawBackground(graphics, slot));
+        }
+        slots.forEach(slot -> drawIcon(graphics, slot));
+        for (Slot slot : slots) {
+            labels(slot, font).forEach(label -> label.draw(graphics, font));
+        }
 
         graphics.pose().popMatrix();
     }
 
-    private float rowX(float width, int count) {
-        float slack = width - rowWidth(count);
-        return switch (rowAlignment) {
-            case LEFT -> 0;
-            case MIDDLE -> slack / 2f;
-            case RIGHT -> slack;
-        };
+    private static void drawBackground(GuiGraphicsExtractor graphics, Slot slot) {
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(slot.x(), slot.y());
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED,
+                slot.effect().isAmbient() ? EFFECT_BACKGROUND_AMBIENT : EFFECT_BACKGROUND, 0, 0, ICON_SIZE, ICON_SIZE);
+        graphics.pose().popMatrix();
     }
 
-    private void drawBackgrounds(GuiGraphicsExtractor graphics, List<MobEffectInstance> effects, float x, float y) {
-        if (!renderBackground) {
-            return;
-        }
-        for (int i = 0; i < effects.size(); i++) {
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(x + i * stride(), y);
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED,
-                    effects.get(i).isAmbient() ? EFFECT_BACKGROUND_AMBIENT : EFFECT_BACKGROUND, 0, 0, ICON_SIZE, ICON_SIZE);
-            graphics.pose().popMatrix();
-        }
-    }
-
-    private void drawIcons(GuiGraphicsExtractor graphics, List<MobEffectInstance> effects, float x, float y) {
-        for (int i = 0; i < effects.size(); i++) {
-            MobEffectInstance effect = effects.get(i);
-            Identifier sprite = net.minecraft.client.gui.Hud.getMobEffectSprite(effect.getEffect());
-
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(x + i * stride() + 3, y + 3);
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, 0, 0, 18, 18, ARGB.white(iconAlpha(effect)));
-            graphics.pose().popMatrix();
-        }
+    private void drawIcon(GuiGraphicsExtractor graphics, Slot slot) {
+        Identifier sprite = net.minecraft.client.gui.Hud.getMobEffectSprite(slot.effect().getEffect());
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(slot.x() + ICON_INSET, slot.y() + ICON_INSET);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, 0, 0, SPRITE_SIZE, SPRITE_SIZE,
+                ARGB.white(iconAlpha(slot.effect())));
+        graphics.pose().popMatrix();
     }
 
     private float iconAlpha(MobEffectInstance effect) {
-        if (!effect.endsWithin((expirationDuration + 1) * 20)) {
+        if (!effect.endsWithin((expirationDuration + 1) * TICKS_PER_SECOND)) {
             return 1.0F;
         }
         int duration = effect.getDuration();
-        int n = 10 - duration / 20;
+        int n = 10 - duration / TICKS_PER_SECOND;
         return Mth.clamp(duration / 10.0F / 5.0F * 0.5F, 0.0F, 0.5F)
                 + Mth.cos(duration * (float) Math.PI / 5.0F) * Mth.clamp(n / 10.0F * 0.25F, 0.0F, 0.25F);
     }
 
-    private void drawText(GuiGraphicsExtractor graphics, Font font, List<MobEffectInstance> effects, float x, float y) {
-        for (int i = 0; i < effects.size(); i++) {
-            MobEffectInstance effect = effects.get(i);
-            float effectX = x + i * stride();
-            if (renderAmplifier && effect.getAmplifier() > 0) {
-                drawAmplifier(graphics, font, effect, effectX, y);
-            }
-            if (renderDuration) {
-                drawDuration(graphics, font, effect, effectX, y);
-            }
+    private LabelStyle amplifierStyle() {
+        return new LabelStyle(amplifierScale, amplifierXOffset, amplifierYOffset, amplifierTextShadow);
+    }
+
+    private LabelStyle durationStyle() {
+        return new LabelStyle(durationScale, durationXOffset, durationYOffset, durationTextShadow);
+    }
+
+    private List<Label> labels(Slot slot, Font font) {
+        MobEffectInstance effect = slot.effect();
+        List<Label> labels = new ArrayList<>(2);
+        if (renderAmplifier && effect.getAmplifier() > 0) {
+            String text = amplifierString(effect);
+            LabelStyle style = amplifierStyle();
+            float nudge = subscriptAmplifier ? -1.5f : 0f;
+            labels.add(
+                    new Label(text, slot.x() + style.x(font, text), slot.y() + style.y(font, AMPLIFIER_BASELINE, nudge),
+                            style, amplifierColorFor(effect)));
         }
+        if (renderDuration) {
+            String text = durationLabel(effect);
+            LabelStyle style = durationStyle();
+            labels.add(new Label(text, slot.x() + style.x(font, text), slot.y() + style.y(font, DURATION_BASELINE, 1f),
+                    style, durationColorFor(effect)));
+        }
+        return labels;
+    }
+
+    private int amplifierColorFor(MobEffectInstance effect) {
+        return Colors.argb(effect.isAmbient() ? ambientAmplifierColor : amplifierColor);
+    }
+
+    private int durationColorFor(MobEffectInstance effect) {
+        if (isExpiringSoon(effect)) {
+            return Colors.argb(expirationColor);
+        }
+        return Colors.argb(effect.isAmbient() ? ambientDurationColor : durationColor);
     }
 
     private String amplifierString(MobEffectInstance effect) {
@@ -401,55 +413,16 @@ public class StatusEffectsHud extends LegacyHud {
                 + (subscriptAmplifier ? FormatCodes.toSubscript(digits) : digits);
     }
 
-    private float amplifierX(Font font, String text) {
-        return (ICON_SIZE - amplifierScale * font.width(text)) / 2f + amplifierScale * (0.5f + amplifierXOffset);
-    }
-
-    private float amplifierY(Font font) {
-        float styleYOffset = subscriptAmplifier ? -1.5f : 0f;
-        return 8 + (font.lineHeight - amplifierScale * font.lineHeight) / 2f
-                + amplifierScale * (styleYOffset - amplifierYOffset);
-    }
-
     private String durationLabel(MobEffectInstance effect) {
         return FormatCodes.replaceAnd(durationText + durationString(effect));
     }
 
-    private float durationX(Font font, String text) {
-        return (ICON_SIZE - durationScale * font.width(text)) / 2f + durationScale * (0.5f + durationXOffset);
-    }
-
-    private void drawAmplifier(GuiGraphicsExtractor graphics, Font font, MobEffectInstance effect, float x, float y) {
-        String text = amplifierString(effect);
-        float scale = amplifierScale;
-
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(x + amplifierX(font, text), y + amplifierY(font));
-        graphics.pose().scale(scale, scale);
-        int color = argb(effect.isAmbient() ? ambientAmplifierColor : amplifierColor);
-        TextRenderUtil.drawText(graphics, font, text, 0, 0, color, amplifierTextShadow);
-        graphics.pose().popMatrix();
-    }
-
-    private void drawDuration(GuiGraphicsExtractor graphics, Font font, MobEffectInstance effect, float x, float y) {
-        String text = durationLabel(effect);
-        float scale = durationScale;
-
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(x + durationX(font, text), y + durationY());
-        graphics.pose().scale(scale, scale);
-        int color = argb(isExpiringSoon(effect) ? expirationColor
-                : effect.isAmbient() ? ambientDurationColor : durationColor);
-        TextRenderUtil.drawText(graphics, font, text, 0, 0, color, durationTextShadow);
-        graphics.pose().popMatrix();
-    }
-
-    private static int argb(PolyColor color) {
-        return color == null ? 0xFFFFFFFF : color.getArgb();
+    private static long secondsLeft(MobEffectInstance effect) {
+        return effect.getDuration() / TICKS_PER_SECOND;
     }
 
     private boolean isExpiringSoon(MobEffectInstance effect) {
-        return !effect.isInfiniteDuration() && effect.getDuration() / 20 < expirationDuration + 1;
+        return !effect.isInfiniteDuration() && secondsLeft(effect) < expirationDuration + 1;
     }
 
     private String durationString(MobEffectInstance effect) {
@@ -458,20 +431,26 @@ public class StatusEffectsHud extends LegacyHud {
             return ambientPrefix + "∞";
         }
 
-        long totalSeconds = effect.getDuration() / 20;
-        if (totalSeconds >= 86400L * 99) {
+        long seconds = secondsLeft(effect);
+        if (seconds >= 86400L * 99) {
             return "";
-        } else if (totalSeconds >= 86400) {
-            return ambientPrefix + DurationFormatUtil.format(totalSeconds, dayFormat);
-        } else if (totalSeconds >= 3600) {
-            return ambientPrefix + DurationFormatUtil.format(totalSeconds, hourFormat);
-        } else if (totalSeconds >= 600) {
-            return ambientPrefix + DurationFormatUtil.format(totalSeconds, minutesFormatLong);
-        } else if (totalSeconds >= 60) {
-            return ambientPrefix + DurationFormatUtil.format(totalSeconds, minutesFormat);
         }
 
-        String seconds = DurationFormatUtil.format(totalSeconds, secondsFormat);
-        return isExpiringSoon(effect) ? ambientPrefix + expirationText + seconds : ambientPrefix + seconds;
+        DurationTier tier = DurationTier.of(seconds);
+        String text = DurationFormatUtil.format(seconds, pattern(tier));
+        if (tier == DurationTier.SECONDS && isExpiringSoon(effect)) {
+            text = expirationText + text;
+        }
+        return ambientPrefix + text;
+    }
+
+    private String pattern(DurationTier tier) {
+        return switch (tier) {
+            case DAYS -> dayFormat;
+            case HOURS -> hourFormat;
+            case LONG_MINUTES -> minutesFormatLong;
+            case MINUTES -> minutesFormat;
+            case SECONDS -> secondsFormat;
+        };
     }
 }

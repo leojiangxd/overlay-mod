@@ -1,6 +1,6 @@
 package triangled.overlaymod.client.utils;
 
-public class FormatCodes {
+public final class FormatCodes {
     private FormatCodes() {
     }
 

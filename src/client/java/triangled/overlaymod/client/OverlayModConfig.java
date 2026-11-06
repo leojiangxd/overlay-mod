@@ -1,7 +1,5 @@
 package triangled.overlaymod.client;
 
-import java.util.Locale.Category;
-
 import com.mojang.blaze3d.platform.InputConstants;
 import java.util.function.Consumer;
 import org.polyfrost.compose.render.PolyColor;
@@ -15,6 +13,8 @@ import org.polyfrost.oneconfig.api.config.v1.annotations.Slider;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
 import org.polyfrost.oneconfig.api.ui.v1.keybind.KeybindHelper;
 import org.polyfrost.oneconfig.api.ui.v1.keybind.OneConfigKeybind;
+import triangled.overlaymod.client.feature.ChatPeek;
+import triangled.overlaymod.client.utils.Colors;
 import triangled.overlaymod.client.utils.TextAlignment;
 import triangled.overlaymod.client.utils.TextShadow;
 
@@ -56,7 +56,7 @@ public class OverlayModConfig extends Config {
         public static boolean durabilityUseCustomColor = false;
 
         @Color(title = "Color", description = "Colour of the durability text when a custom colour is in use", category = "Durability", subcategory = "Style")
-        public static PolyColor durabilityColor = new PolyColor(0xFFFFFFFF, false, 1.0F);
+        public static PolyColor durabilityColor = Colors.white();
 
         // ---------------------------------------------------------------- Position
 

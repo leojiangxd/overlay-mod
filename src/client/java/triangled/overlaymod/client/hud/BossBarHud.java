@@ -18,17 +18,18 @@ import org.polyfrost.oneconfig.api.config.v1.annotations.Slider;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
 import org.polyfrost.oneconfig.api.hud.v1.HudManager;
-import org.polyfrost.oneconfig.api.hud.v1.LegacyHud;
 import triangled.overlaymod.client.mixin.BossHealthOverlayAccessor;
 import triangled.overlaymod.client.mixin.HudAccessor;
+import triangled.overlaymod.client.utils.Bounds;
+import triangled.overlaymod.client.utils.Colors;
 import triangled.overlaymod.client.utils.TextRenderUtil;
 import triangled.overlaymod.client.utils.TextShadow;
 
-public class BossBarHud extends LegacyHud {
-    private static final int BAR_WIDTH = 182;
-    private static final int BAR_HEIGHT = 5;
-    private static final int NAME_HEIGHT = 9;
-    private static final int STRIDE = 19;
+public class BossBarHud extends OverlayHud {
+    public static final int BAR_WIDTH = 182;
+    public static final int BAR_HEIGHT = 5;
+    public static final int NAME_HEIGHT = 9;
+    public static final int STRIDE = 19;
 
     private static final LerpingBossEvent PREVIEW = new LerpingBossEvent(UUID.randomUUID(),
             Component.literal("Boss"), 0.75F, BossEvent.BossBarColor.PINK, BossEvent.BossBarOverlay.NOTCHED_10,
@@ -39,8 +40,7 @@ public class BossBarHud extends LegacyHud {
 
     // ---------------------------------------------------------------- Layout
 
-    @Slider(title = "Max Height", description = "Stop adding bars once they fill 1/n of the screen height",
-            min = 1, max = 10, step = 1, subcategory = "Layout")
+    @Slider(title = "Max Height", description = "Stop adding bars once they fill 1/n of the screen height", min = 1, max = 10, step = 1, subcategory = "Layout")
     public int maxHeight = 6;
 
     // ---------------------------------------------------------------- Style
@@ -48,9 +48,8 @@ public class BossBarHud extends LegacyHud {
     @Dropdown(title = "Name Shadow", description = "How the boss name is shadowed or outlined", subcategory = "Style")
     public TextShadow nameTextShadow = TextShadow.SHADOW;
 
-    @Color(title = "Name Color", description = "Colour of any part of the name not coloured by the server",
-            subcategory = "Style")
-    public PolyColor nameColor = new PolyColor(0xFFFFFFFF, false, 1.0F);
+    @Color(title = "Name Color", description = "Color of any part of the name not colored by the server", subcategory = "Style")
+    public PolyColor nameColor = Colors.white();
 
     public BossBarHud() {
         super("overlaymod_boss_bars.yml", "Boss Bars", Hud.Category.Companion.getINFO());
@@ -58,12 +57,7 @@ public class BossBarHud extends LegacyHud {
     }
 
     public static boolean replacesVanilla() {
-        for (Hud hud : HudManager.INSTANCE.getActiveInstances()) {
-            if (hud instanceof BossBarHud bossBars && bossBars.hideVanilla && !bossBars.getHidden()) {
-                return true;
-            }
-        }
-        return false;
+        return activeHuds(BossBarHud.class).stream().anyMatch(hud -> hud.hideVanilla && !hud.getHidden());
     }
 
     private static BossHealthOverlay overlay() {
@@ -76,12 +70,13 @@ public class BossBarHud extends LegacyHud {
 
     public static List<LerpingBossEvent> liveEvents() {
         BossHealthOverlay overlay = overlay();
-        return overlay == null ? List.of() : new ArrayList<>(((BossHealthOverlayAccessor) overlay).getEvents().values());
+        return overlay == null ? List.of()
+                : new ArrayList<>(((BossHealthOverlayAccessor) overlay).getEvents().values());
     }
 
     private List<? extends BossEvent> shownEvents() {
         List<LerpingBossEvent> events = liveEvents();
-        if (events.isEmpty() && HudManager.INSTANCE.isEditing()) {
+        if (events.isEmpty() && isEditing()) {
             return List.of(PREVIEW);
         }
         return events.subList(0, visibleCount(events.size()));
@@ -103,8 +98,8 @@ public class BossBarHud extends LegacyHud {
         return count <= 0 ? 0 : (count - 1) * STRIDE + NAME_HEIGHT + BAR_HEIGHT;
     }
 
-    private float contentWidth(List<? extends BossEvent> events) {
-        Font font = Minecraft.getInstance().font;
+    private static float contentWidth(List<? extends BossEvent> events) {
+        Font font = font();
         int width = BAR_WIDTH;
         for (BossEvent event : events) {
             width = Math.max(width, font.width(event.getName()));
@@ -112,46 +107,35 @@ public class BossBarHud extends LegacyHud {
         return width;
     }
 
-    private float[] bounds(List<? extends BossEvent> events) {
-        Font font = Minecraft.getInstance().font;
+    private Bounds bounds(List<? extends BossEvent> events) {
+        Font font = font();
         float width = contentWidth(events);
-        float[] bounds = {0, 0, width, Math.max(1, contentHeight(events.size()))};
+        Bounds bounds = new Bounds(0, 0, width, Math.max(1, contentHeight(events.size())));
         for (int i = 0; i < events.size(); i++) {
             int nameWidth = font.width(events.get(i).getName());
-            float[] box = TextRenderUtil.textBounds(font, nameWidth, nameX(width, nameWidth), i * STRIDE, 1F,
-                    nameTextShadow);
-            bounds[0] = Math.min(bounds[0], box[0]);
-            bounds[1] = Math.min(bounds[1], box[1]);
-            bounds[2] = Math.max(bounds[2], box[2]);
-            bounds[3] = Math.max(bounds[3], box[3]);
+            bounds = bounds.union(TextRenderUtil.textBounds(font, nameWidth, centered(width, nameWidth), i * STRIDE, 1F,
+                    nameTextShadow));
         }
         return bounds;
     }
 
-    private static int nameX(float width, int nameWidth) {
-        return Math.round((width - nameWidth) / 2f);
+    private static int centered(float containerWidth, int width) {
+        return Math.round((containerWidth - width) / 2f);
     }
 
     @Override
     public float getWidth() {
-        float[] bounds = bounds(shownEvents());
-        return bounds[2] - bounds[0];
+        return bounds(shownEvents()).width();
     }
 
     @Override
     public float getHeight() {
-        float[] bounds = bounds(shownEvents());
-        return bounds[3] - bounds[1];
+        return bounds(shownEvents()).height();
     }
 
     @Override
     public boolean shouldShow() {
         return !shownEvents().isEmpty();
-    }
-
-    @Override
-    public boolean update() {
-        return false;
     }
 
     @Override
@@ -164,17 +148,15 @@ public class BossBarHud extends LegacyHud {
         return new Pair<>((HudManager.guiScreenWidth - getScaledWidth()) / 2f, 3.0F);
     }
 
-    public float[] liveScreenBounds() {
+    public Bounds liveScreenBounds() {
         List<LerpingBossEvent> events = liveEvents();
         int count = visibleCount(events.size());
         if (count == 0 || getHidden()) {
             return null;
         }
         float scale = getFrameScale();
-        float[] bounds = bounds(events.subList(0, count));
-        float left = getFrameX();
-        float top = getFrameY();
-        return new float[] {left, top, left + (bounds[2] - bounds[0]) * scale, top + (bounds[3] - bounds[1]) * scale};
+        Bounds bounds = bounds(events.subList(0, count));
+        return Bounds.ofSize(getFrameX(), getFrameY(), bounds.width() * scale, bounds.height() * scale);
     }
 
     @Override
@@ -185,22 +167,22 @@ public class BossBarHud extends LegacyHud {
             return;
         }
 
-        Font font = Minecraft.getInstance().font;
+        Font font = font();
         float width = contentWidth(events);
-        float[] bounds = bounds(events);
-        int color = nameColor == null ? 0xFFFFFFFF : nameColor.getArgb();
+        Bounds bounds = bounds(events);
+        int color = Colors.argb(nameColor);
+        int barX = centered(width, BAR_WIDTH);
 
         graphics.pose().pushMatrix();
-        graphics.pose().translate(-bounds[0], -bounds[1]);
+        graphics.pose().translate(-bounds.left(), -bounds.top());
 
         for (int i = 0; i < events.size(); i++) {
             BossEvent event = events.get(i);
             int top = i * STRIDE;
 
             Component name = event.getName();
-            TextRenderUtil.drawText(graphics, font, name, nameX(width, font.width(name)), top, color, nameTextShadow);
-
-            int barX = Math.round((width - BAR_WIDTH) / 2f);
+            TextRenderUtil.drawText(graphics, font, name, centered(width, font.width(name)), top, color,
+                    nameTextShadow);
             ((BossHealthOverlayAccessor) overlay).invokeExtractBar(graphics, barX, top + NAME_HEIGHT, event);
         }
 

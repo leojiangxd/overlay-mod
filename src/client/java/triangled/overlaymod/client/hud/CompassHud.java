@@ -1,12 +1,11 @@
 package triangled.overlaymod.client.hud;
 
 import kotlin.Pair;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Text;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
-import triangled.overlaymod.client.utils.Facing;
+import triangled.overlaymod.client.utils.CompassDirection;
 
 public class CompassHud extends MinecraftTextHud {
     @Switch(title = "Ordinal Directions", description = "Show NE/SE/SW/NW instead of N/E/S/W")
@@ -42,35 +41,29 @@ public class CompassHud extends MinecraftTextHud {
 
     @Override
     protected String getText() {
-        Minecraft mc = Minecraft.getInstance();
-        LocalPlayer player = mc == null ? null : mc.player;
-
+        LocalPlayer player = player();
         if (player == null) {
             return "";
         }
-
-        float yaw = player.getYRot(1.0F);
-        return ordinalDirections
-                ? directionText(Facing.index(yaw, 8))
-                : directionText(Facing.index(yaw, 4) * 2);
+        return directionText(CompassDirection.fromYaw(player.getYRot(1.0F), ordinalDirections));
     }
 
     @Override
     protected String previewText() {
-        return dirNorth;
+        return directionText(CompassDirection.NORTH);
     }
 
-    private String directionText(int facing) {
-        switch (facing) {
-            case 0: return dirNorth;
-            case 1: return dirNorthEast;
-            case 2: return dirEast;
-            case 3: return dirSouthEast;
-            case 4: return dirSouth;
-            case 5: return dirSouthWest;
-            case 6: return dirWest;
-            default: return dirNorthWest;
-        }
+    private String directionText(CompassDirection direction) {
+        return switch (direction) {
+            case NORTH -> dirNorth;
+            case NORTH_EAST -> dirNorthEast;
+            case EAST -> dirEast;
+            case SOUTH_EAST -> dirSouthEast;
+            case SOUTH -> dirSouth;
+            case SOUTH_WEST -> dirSouthWest;
+            case WEST -> dirWest;
+            case NORTH_WEST -> dirNorthWest;
+        };
     }
 
     @Override
