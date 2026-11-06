@@ -302,6 +302,7 @@ public class StatusEffectsHud extends OverlayHud {
 
     @Override
     public boolean shouldShow() {
+        applyGrowthAnchor();
         return !rows().isEmpty();
     }
 
@@ -317,6 +318,7 @@ public class StatusEffectsHud extends OverlayHud {
 
     @Override
     public void render(GuiGraphicsExtractor graphics) {
+        applyGrowthAnchor();
         Rows rows = rows();
         if (rows.isEmpty()) {
             return;

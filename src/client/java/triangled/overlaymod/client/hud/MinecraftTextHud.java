@@ -52,11 +52,13 @@ public abstract class MinecraftTextHud extends OverlayHud {
 
     @Override
     public boolean shouldShow() {
+        applyGrowthAnchor();
         return !displayText().isEmpty();
     }
 
     @Override
     public void render(GuiGraphicsExtractor graphics) {
+        applyGrowthAnchor();
         String text = displayText();
         if (text.isEmpty()) {
             return;

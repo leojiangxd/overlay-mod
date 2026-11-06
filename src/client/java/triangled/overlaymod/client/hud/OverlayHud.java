@@ -5,11 +5,16 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.player.LocalPlayer;
+import org.polyfrost.oneconfig.api.config.v1.annotations.Dropdown;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
+import org.polyfrost.oneconfig.api.hud.v1.HudAnchor;
 import org.polyfrost.oneconfig.api.hud.v1.HudManager;
 import org.polyfrost.oneconfig.api.hud.v1.LegacyHud;
 
 public abstract class OverlayHud extends LegacyHud {
+    @Dropdown(title = "Growth Anchor", description = "The point that stays in place as this HUD grows or shrinks")
+    public HudAnchor overlayGrowthAnchor = HudAnchor.Auto;
+
     protected OverlayHud(String id, String title, Hud.Category category) {
         super(id, title, category);
     }
@@ -35,6 +40,12 @@ public abstract class OverlayHud extends LegacyHud {
     protected static LocalPlayer player() {
         Minecraft mc = Minecraft.getInstance();
         return mc == null ? null : mc.player;
+    }
+
+    protected void applyGrowthAnchor() {
+        if (overlayGrowthAnchor != null && getGrowthAnchor() != overlayGrowthAnchor) {
+            setGrowthAnchorKeepingPosition(overlayGrowthAnchor);
+        }
     }
 
     @Override

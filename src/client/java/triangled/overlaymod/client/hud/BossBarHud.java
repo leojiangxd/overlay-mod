@@ -135,6 +135,7 @@ public class BossBarHud extends OverlayHud {
 
     @Override
     public boolean shouldShow() {
+        applyGrowthAnchor();
         return !shownEvents().isEmpty();
     }
 
@@ -161,6 +162,7 @@ public class BossBarHud extends OverlayHud {
 
     @Override
     public void render(GuiGraphicsExtractor graphics) {
+        applyGrowthAnchor();
         List<? extends BossEvent> events = shownEvents();
         BossHealthOverlay overlay = overlay();
         if (events.isEmpty() || overlay == null) {

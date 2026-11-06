@@ -92,6 +92,7 @@ public class ArmorHud extends OverlayHud {
 
     @Override
     public boolean shouldShow() {
+        applyGrowthAnchor();
         LocalPlayer player = player();
         return player != null && !player.isSpectator() && !equipment().isEmpty();
     }
@@ -103,6 +104,7 @@ public class ArmorHud extends OverlayHud {
 
     @Override
     public void render(GuiGraphicsExtractor graphics) {
+        applyGrowthAnchor();
         List<ItemStack> equipment = equipment();
         if (equipment.isEmpty()) {
             return;
