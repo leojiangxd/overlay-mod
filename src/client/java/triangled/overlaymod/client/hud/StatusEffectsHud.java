@@ -50,6 +50,9 @@ public class StatusEffectsHud extends OverlayHud {
     @Switch(title = "Move Below Boss Bars", description = "Move the HUD down while boss bars above it would overlap it", subcategory = "Visibility")
     public boolean belowBossBars = true;
 
+    @Number(title = "Boss Bar Y Offset", description = "Extra space below the boss bars when the HUD is moved down", min = -64, max = 64, subcategory = "Visibility")
+    public float bossBarYOffset = 0.0F;
+
     @Switch(title = "Render Background", description = "Draw the vanilla effect frame behind each icon", subcategory = "Visibility")
     public boolean renderBackground = false;
 
@@ -327,7 +330,7 @@ public class StatusEffectsHud extends OverlayHud {
         Font font = font();
         List<Slot> slots = slots(rows);
         Bounds bounds = bounds(slots);
-        float bossBarOffset = belowBossBars && !isEditing() ? BossBarUtil.pushDown(this) : 0f;
+        float bossBarOffset = belowBossBars && !isEditing() ? BossBarUtil.pushDown(this, bossBarYOffset) : 0f;
 
         graphics.pose().pushMatrix();
         graphics.pose().translate(-bounds.left(), -bounds.top() + bossBarOffset);

@@ -13,25 +13,30 @@ public final class BossBarUtil {
     }
 
     public static float pushDown(LegacyHud hud) {
+        return pushDown(hud, 0F);
+    }
+
+    public static float pushDown(LegacyHud hud, float extraOffset) {
         float scale = Math.max(0.01F, hud.getFrameScale());
         Bounds frame = Bounds.ofSize(hud.getFrameX(), hud.getFrameY(), hud.getWidth() * scale, hud.getHeight() * scale);
+        float gap = GAP + extraOffset;
         float push = 0F;
 
         for (BossBarHud bossBars : OverlayHud.activeHuds(BossBarHud.class)) {
-            push = Math.max(push, pushBelow(frame, bossBars.liveScreenBounds()));
+            push = Math.max(push, pushBelow(frame, bossBars.liveScreenBounds(), gap));
         }
         if (!BossBarHud.replacesVanilla()) {
-            push = Math.max(push, pushBelow(frame, vanillaBounds()));
+            push = Math.max(push, pushBelow(frame, vanillaBounds(), gap));
         }
 
         return push / scale;
     }
 
-    private static float pushBelow(Bounds frame, Bounds bars) {
+    private static float pushBelow(Bounds frame, Bounds bars, float gap) {
         if (bars == null || !frame.overlaps(bars)) {
             return 0F;
         }
-        return bars.bottom() + GAP - frame.top();
+        return Math.max(0F, bars.bottom() + gap - frame.top());
     }
 
     private static Bounds vanillaBounds() {
