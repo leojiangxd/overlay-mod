@@ -101,7 +101,7 @@ public class ArmorHud extends LegacyHud {
 
     @Override
     public Pair<Float, Float> defaultPosition() {
-        return new Pair<>(HudManager.guiScreenWidth / 2f + 91 + 29, HudManager.guiScreenHeight - HOTBAR_HEIGHT);
+        return new Pair<>(HudManager.guiScreenWidth - getScaledWidth(), HudManager.guiScreenHeight - getScaledHeight());
     }
 
     @Override
