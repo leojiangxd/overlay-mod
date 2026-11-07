@@ -49,10 +49,10 @@ public class StatusEffectsHud extends OverlayHud {
     public boolean belowBossBars = true;
 
     @Number(title = "Boss Bar Y Offset", description = "Extra space below the boss bars when the HUD is moved down", min = -64, max = 64, subcategory = "Visibility")
-    public float bossBarYOffset = 0.0F;
+    public float bossBarYOffset = 1.5F;
 
     @Switch(title = "Render Effect Background", description = "Draw the effect background behind each icon", subcategory = "Visibility")
-    public boolean renderBackground = false;
+    public boolean renderBackground = true;
 
     @Switch(title = "Separate Negative Effects", description = "Put harmful effects on their own row below beneficial ones", subcategory = "Visibility")
     public boolean separateNegative = true;
@@ -118,28 +118,28 @@ public class StatusEffectsHud extends OverlayHud {
     public TextAlignment rowAlignment = TextAlignment.MIDDLE;
 
     @Slider(title = "Effect Gap", description = "Space between icons", min = -8, max = 16, step = 1, subcategory = "Layout")
-    public int effectGap = 1;
+    public int effectGap = 2;
 
     @Number(title = "Row Gap", description = "Space between the beneficial and harmful rows", min = -24, max = 64, subcategory = "Layout")
-    public float rowGap = 8.0F;
+    public float rowGap = 6.5F;
 
     @Number(title = "Amplifier Scale", min = 0.1F, max = 4, subcategory = "Layout")
-    public float amplifierScale = 1.0F;
+    public float amplifierScale = 0.5F;
 
     @Number(title = "Amplifier X Offset", min = -32, max = 32, subcategory = "Layout")
-    public float amplifierXOffset = 0.0F;
+    public float amplifierXOffset = 0.5F;
 
     @Number(title = "Amplifier Y Offset", description = "Positive moves up", min = -32, max = 32, subcategory = "Layout")
-    public float amplifierYOffset = 0.0F;
+    public float amplifierYOffset = 0.5F;
 
     @Number(title = "Duration Scale", min = 0.1F, max = 4, subcategory = "Layout")
     public float durationScale = 1.0F;
 
     @Number(title = "Duration X Offset", min = -32, max = 32, subcategory = "Layout")
-    public float durationXOffset = 0.0F;
+    public float durationXOffset = 0.5F;
 
     @Number(title = "Duration Y Offset", description = "Positive moves up", min = -32, max = 32, subcategory = "Layout")
-    public float durationYOffset = 0.0F;
+    public float durationYOffset = 3.5F;
     // ---------------------------------------
 
     // The effects split into a top row and a bottom row.
@@ -329,7 +329,7 @@ public class StatusEffectsHud extends OverlayHud {
     // Places the HUD at the top center of the screen by default.
     @Override
     public Pair<Float, Float> defaultPosition() {
-        return new Pair<>((HudManager.guiScreenWidth - getScaledWidth()) / 2f, 4.0F);
+        return new Pair<>((HudManager.guiScreenWidth - getScaledWidth()) / 2f, 2.0F);
     }
 
     // Draws the backgrounds, icons and labels.

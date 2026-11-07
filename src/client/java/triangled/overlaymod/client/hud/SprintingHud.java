@@ -40,6 +40,6 @@ public class SprintingHud extends MinecraftTextHud {
     // Default position of HUD in OneConfig's HUD editor
     @Override
     public Pair<Float, Float> defaultPosition() {
-        return new Pair<>(HudManager.guiScreenWidth - getScaledWidth() - 3.0F, 14.0F);
+        return new Pair<>(HudManager.guiScreenWidth - getScaledWidth() - 2.0F, 14.0F);
     }
 }

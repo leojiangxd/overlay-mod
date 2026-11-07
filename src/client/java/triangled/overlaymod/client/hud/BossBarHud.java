@@ -49,6 +49,7 @@ public class BossBarHud extends OverlayHud {
     public BossBarHud() {
         super("overlaymod_boss_bars.yml", "Boss Bars", Hud.Category.Companion.getINFO());
         setCustomScale(0.5F);
+        setPadTop(1.0F);
     }
 
     // Returns true if any visible boss bar HUD is set to hide the vanilla bars.
@@ -185,7 +186,7 @@ public class BossBarHud extends OverlayHud {
     // Places the HUD at the top center of the screen by default.
     @Override
     public Pair<Float, Float> defaultPosition() {
-        return new Pair<>((HudManager.guiScreenWidth - getScaledWidth()) / 2f, 3.0F);
+        return new Pair<>((HudManager.guiScreenWidth - getScaledWidth()) / 2f, 2.0F);
     }
 
     // Draws each boss name centered above its bar.

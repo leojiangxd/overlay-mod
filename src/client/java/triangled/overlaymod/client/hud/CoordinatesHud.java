@@ -233,7 +233,7 @@ public class CoordinatesHud extends MinecraftTextHud {
     // Default position of HUD in OneConfig's HUD editor
     @Override
     public Pair<Float, Float> defaultPosition() {
-        return new Pair<>(3.0F, 3.0F);
+        return new Pair<>(2.0F, 2.0F);
     }
 
     // Gives each copy of the HUD its own rows so copies don't share them.
