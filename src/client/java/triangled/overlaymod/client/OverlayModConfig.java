@@ -16,6 +16,7 @@ import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
 import org.polyfrost.oneconfig.api.ui.v1.keybind.KeybindHelper;
 import org.polyfrost.oneconfig.api.ui.v1.keybind.OneConfigKeybind;
 import triangled.overlaymod.client.feature.ChatPeek;
+import triangled.overlaymod.client.feature.BarrierVisibility;
 import triangled.overlaymod.client.utils.Colors;
 import triangled.overlaymod.client.utils.TextAlignment;
 
@@ -77,8 +78,6 @@ public class OverlayModConfig extends Config {
     @Number(title = "Exponent Y Offset", description = "Vertical nudge for the exponent marker in scientific notation", min = -32, max = 32, category = "Durability", subcategory = "Position")
     public static float durabilityExponentYOffset = 0.0F;
 
-    // ---------------------------------------
-
     // -------------- CHAT PEEK --------------
 
     @Switch(title = "Chat Peek", description = "Show chat without opening it", category = "Chat Peek", subcategory = "General")
@@ -98,6 +97,20 @@ public class OverlayModConfig extends Config {
 
     @Slider(title = "Scroll Lines", description = "Lines scrolled while peeking", min = 1, max = 20, step = 1, category = "Chat Peek", subcategory = "General")
     public static int chatPeekScrollLines = 7;
+
+    // --------- BARRIER VISIBILITY ---------
+
+    @Keybind(title = "Toggle Key", description = "Press to show or hide barrier blocks", category = "Barrier Visibility", subcategory = "General")
+    public static OneConfigKeybind barrierToggleKey = KeybindHelper.builder()
+            .key(InputConstants.KEY_GRAVE)
+            .action((Runnable) BarrierVisibility::toggle)
+            .register();
+
+    @Switch(title = "Show Activation Message", description = "Show barrier visibility activation state in actionbar", category = "Barrier Visibility", subcategory = "General")
+    public static boolean barrierShowMessage = true;
+
+    @Switch(title = "Hide Barrier Particles", description = "Hide the barrier particles while barrier visibility is on", category = "Barrier Visibility", subcategory = "General")
+    public static boolean barrierHideParticles = true;
 
     // ---------------------------------------
 

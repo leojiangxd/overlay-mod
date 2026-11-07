@@ -10,7 +10,9 @@
 		"DurabilityTextMixin",
 		"HideVanillaBossBarsMixin",
 		"HideVanillaEffectsMixin",
-		"HudAccessor"
+		"HudAccessor",
+		"BarrierParticlesMixin",
+		"BarrierVisibilityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
