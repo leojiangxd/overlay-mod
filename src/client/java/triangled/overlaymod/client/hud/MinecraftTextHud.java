@@ -1,70 +1,39 @@
 package triangled.overlaymod.client.hud;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-import org.polyfrost.compose.render.PolyColor;
-import org.polyfrost.oneconfig.api.config.v1.annotations.Color;
-import org.polyfrost.oneconfig.api.config.v1.annotations.Dropdown;
+import org.polyfrost.compose.render.RenderContext;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
-import triangled.overlaymod.client.utils.Colors;
-import triangled.overlaymod.client.utils.FormatCodes;
-import triangled.overlaymod.client.utils.Insets;
-import triangled.overlaymod.client.utils.TextRenderUtil;
-import triangled.overlaymod.client.utils.TextShadow;
 
+// This is a base class for text-based HUDs
 public abstract class MinecraftTextHud extends OverlayHud {
-    // ---------------------------------------------------------------- Style
-
-    @Dropdown(title = "Text Shadow", description = "How the text is shadowed or outlined", subcategory = "Style")
-    public TextShadow minecraftTextShadow = TextShadow.SHADOW;
-
-    @Color(title = "Text Color", description = "Colour of any text not coloured by a formatting code", subcategory = "Style")
-    public PolyColor minecraftTextColor = Colors.white();
+    private transient String displayedText = "";
 
     protected MinecraftTextHud(String id, String title, Hud.Category category) {
         super(id, title, category);
     }
 
+    // Returns the text to show, or blank to hide the HUD.
     protected abstract String getText();
 
+    // Returns sample text for the HUD editor when getText is blank.
     protected abstract String previewText();
 
-    private String displayText() {
-        String text = getText();
-        if ((text == null || text.isEmpty()) && isEditing()) {
-            text = previewText();
-        }
-        return FormatCodes.replaceAnd(text);
-    }
-
-    private Insets insets() {
-        return TextShadow.orDefault(minecraftTextShadow).insets();
-    }
-
+    // OneConfig calls this every update to grab the latest text and resize.
     @Override
-    public float getWidth() {
-        return font().width(displayText()) + insets().horizontal();
+    protected void refresh() {
+        String currentText = getText();
+        displayedText = currentText.isEmpty() && isEditing() ? previewText() : currentText;
+        setSize(text().width(displayedText), text().height());
     }
 
-    @Override
-    public float getHeight() {
-        return font().lineHeight - 1 + insets().vertical();
-    }
-
+    // Hides the HUD when there's no text to show.
     @Override
     public boolean shouldShow() {
-        applyGrowthAnchor();
-        return !displayText().isEmpty();
+        return !displayedText.isEmpty();
     }
 
+    // Draws the text using the HUD's text settings.
     @Override
-    public void render(GuiGraphicsExtractor graphics) {
-        applyGrowthAnchor();
-        String text = displayText();
-        if (text.isEmpty()) {
-            return;
-        }
-        Insets insets = insets();
-        TextRenderUtil.drawText(graphics, font(), text, insets.left(), insets.top(),
-                Colors.argb(minecraftTextColor), minecraftTextShadow);
+    protected void paint(RenderContext renderContext, float x, float y) {
+        text().draw(renderContext, displayedText, x, y, text().textColor());
     }
 }

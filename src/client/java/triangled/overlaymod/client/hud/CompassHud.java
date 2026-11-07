@@ -8,6 +8,7 @@ import org.polyfrost.oneconfig.api.hud.v1.Hud;
 import triangled.overlaymod.client.utils.CompassDirection;
 
 public class CompassHud extends MinecraftTextHud {
+    // --------------- CONFIGS ---------------
     @Switch(title = "Ordinal Directions", description = "Show NE/SE/SW/NW instead of N/E/S/W")
     public boolean ordinalDirections = true;
 
@@ -34,11 +35,13 @@ public class CompassHud extends MinecraftTextHud {
 
     @Text(title = "Northwest", description = "Text shown when facing northwest")
     public String dirNorthWest = "ɴᴡ";
+    // ---------------------------------------
 
     public CompassHud() {
         super("overlaymod_compass.yml", "Compass", Hud.Category.Companion.getINFO());
     }
 
+    // Returns the text for the direction the player is facing.
     @Override
     protected String getText() {
         LocalPlayer player = player();
@@ -48,11 +51,13 @@ public class CompassHud extends MinecraftTextHud {
         return directionText(CompassDirection.fromYaw(player.getYRot(1.0F), ordinalDirections));
     }
 
+    // Shows north in the HUD editor when there's no direction to show.
     @Override
     protected String previewText() {
         return directionText(CompassDirection.NORTH);
     }
 
+    // Returns the text set for the given direction.
     private String directionText(CompassDirection direction) {
         return switch (direction) {
             case NORTH -> dirNorth;
@@ -66,6 +71,7 @@ public class CompassHud extends MinecraftTextHud {
         };
     }
 
+    // Default position of HUD in OneConfig's HUD editor
     @Override
     public Pair<Float, Float> defaultPosition() {
         return new Pair<>(3.0F, 14.0F);

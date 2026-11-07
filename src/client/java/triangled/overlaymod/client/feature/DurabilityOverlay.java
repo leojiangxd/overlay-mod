@@ -7,131 +7,162 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
+import org.polyfrost.compose.render.PolyColor;
+import org.polyfrost.compose.render.RenderContext;
 import triangled.overlaymod.client.OverlayModConfig;
 import triangled.overlaymod.client.utils.Colors;
-import triangled.overlaymod.client.utils.FormatCodes;
+import triangled.overlaymod.client.utils.Subscript;
 import triangled.overlaymod.client.utils.TextAlignment;
-import triangled.overlaymod.client.utils.TextRenderUtil;
-import triangled.overlaymod.client.utils.TextShadow;
 
 public final class DurabilityOverlay {
     private static final int BAR_X_OFFSET = 2;
     private static final int BAR_Y_OFFSET = 13;
     private static final int BAR_WIDTH = 13;
     private static final int BAR_HEIGHT = 2;
-    private static final int BAR_BACKGROUND = 0xFF000000;
+    private static final int BAR_BACKGROUND_COLOR = 0xFF000000;
     private static final float TEXT_SCALE = 0.5f;
-    private static final String EXPONENT = "ᴇ";
+    private static final String EXPONENT_SYMBOL = "ᴇ";
 
     private DurabilityOverlay() {
     }
 
-    private record DurabilityText(String text, boolean subscript) {
-        static final DurabilityText NONE = new DurabilityText("", false);
+    private interface Target {
+        void fill(float left, float top, float width, float height, int color);
 
-        boolean isEmpty() {
-            return text.isEmpty();
+        void text(String text, float x, float y, float scale, int color, boolean shadow);
+    }
+
+    private record GuiTarget(GuiGraphicsExtractor graphics, Font font) implements Target {
+        @Override
+        public void fill(float left, float top, float width, float height, int color) {
+            graphics.fill(RenderPipelines.GUI, (int) left, (int) top, (int) (left + width), (int) (top + height),
+                    color);
+        }
+
+        @Override
+        public void text(String text, float x, float y, float scale, int color, boolean shadow) {
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(x, y);
+            graphics.pose().scale(scale, scale);
+            graphics.text(font, text, 0, 0, color, shadow);
+            graphics.pose().popMatrix();
         }
     }
 
+    private record CanvasTarget(RenderContext renderContext) implements Target {
+        @Override
+        public void fill(float left, float top, float width, float height, int color) {
+            renderContext.rect(left, top, width, height, new PolyColor(color, false, 1f), 0f);
+        }
+
+        @Override
+        public void text(String text, float x, float y, float scale, int color, boolean shadow) {
+            renderContext.mcText(text, x, y, color, shadow, scale);
+        }
+    }
+
+    private record DurabilityText(String text, boolean subscript) {
+        static final DurabilityText NONE = new DurabilityText("", false);
+    }
+
     public static void render(GuiGraphicsExtractor graphics, Font font, ItemStack stack, int x, int y) {
-        int barLeft = x + BAR_X_OFFSET;
-        int barTop = y + BAR_Y_OFFSET;
+        draw(new GuiTarget(graphics, font), font, stack, x, y);
+    }
+
+    public static void render(RenderContext renderContext, Font font, ItemStack stack, float x, float y) {
+        draw(new CanvasTarget(renderContext), font, stack, x, y);
+    }
+
+    private static void draw(Target target, Font font, ItemStack stack, float x, float y) {
+        float barLeft = x + BAR_X_OFFSET;
+        float barTop = y + BAR_Y_OFFSET;
         boolean barVisible = stack.isBarVisible();
 
         if (OverlayModConfig.durabilityShowBar && barVisible) {
-            drawBar(graphics, stack, barLeft, barTop);
+            drawBar(target, stack, barLeft, barTop);
         }
         if (!OverlayModConfig.durabilityShowText || (!barVisible && !OverlayModConfig.durabilityShowAtFull)) {
             return;
         }
 
-        DurabilityText durability = durabilityText(stack);
-        if (durability.isEmpty()) {
+        DurabilityText label = durabilityText(stack);
+        if (label.text().isEmpty()) {
             return;
         }
 
-        float scaledWidth = font.width(durability.text()) * TEXT_SCALE;
-        float scaledHeight = font.lineHeight * TEXT_SCALE;
+        float textWidth = font.width(label.text()) * TEXT_SCALE;
+        float textHeight = font.lineHeight * TEXT_SCALE;
 
         TextAlignment alignment = OverlayModConfig.durabilityAlignment;
-        float anchorX = barLeft + alignment.align(BAR_WIDTH - scaledWidth)
+        float textX = barLeft + alignment.align(BAR_WIDTH - textWidth)
                 + (alignment == TextAlignment.MIDDLE ? 0.25f : 0f);
-        float anchorY = barTop - scaledHeight + 0.5f;
-        if (durability.subscript()) {
-            anchorY -= 0.5f + OverlayModConfig.durabilitySubscriptYOffset;
+        float textY = barTop - textHeight + 0.5f;
+        if (label.subscript()) {
+            textY -= 0.5f + OverlayModConfig.durabilitySubscriptYOffset;
         }
         if (!OverlayModConfig.durabilityShowBar || !barVisible) {
-            anchorY += 2f;
+            textY += 2f;
         }
 
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(anchorX + OverlayModConfig.durabilityXOffset, anchorY - OverlayModConfig.durabilityYOffset);
-        graphics.pose().scale(TEXT_SCALE, TEXT_SCALE);
-        drawText(graphics, font, durability, textColor(stack));
-        graphics.pose().popMatrix();
+        drawText(target, font, label, textColor(stack),
+                textX + OverlayModConfig.durabilityXOffset, textY - OverlayModConfig.durabilityYOffset);
     }
 
-    private static void drawBar(GuiGraphicsExtractor graphics, ItemStack stack, int left, int top) {
-        graphics.fill(RenderPipelines.GUI, left, top, left + BAR_WIDTH, top + BAR_HEIGHT, BAR_BACKGROUND);
-        graphics.fill(RenderPipelines.GUI, left, top, left + stack.getBarWidth(), top + 1, ARGB.opaque(stack.getBarColor()));
+    private static void drawBar(Target target, ItemStack stack, float left, float top) {
+        target.fill(left, top, BAR_WIDTH, BAR_HEIGHT, BAR_BACKGROUND_COLOR);
+        target.fill(left, top, stack.getBarWidth(), 1, ARGB.opaque(stack.getBarColor()));
     }
 
     private static int textColor(ItemStack stack) {
-        int configColor = Colors.argb(OverlayModConfig.durabilityColor);
-        int rgb = OverlayModConfig.durabilityUseCustomColor ? (configColor & 0xFFFFFF) : stack.getBarColor();
-        return ARGB.color(ARGB.alpha(configColor), rgb);
+        int customColor = Colors.argb(OverlayModConfig.durabilityColor);
+        int rgb = OverlayModConfig.durabilityUseCustomColor ? (customColor & 0xFFFFFF) : stack.getBarColor();
+        return ARGB.color(ARGB.alpha(customColor), rgb);
     }
 
-    private static void drawText(GuiGraphicsExtractor graphics, Font font, DurabilityText durability, int color) {
-        TextShadow shadow = OverlayModConfig.durabilityTextShadow;
-        String text = durability.text();
-        int exponentIndex = durability.subscript() ? text.indexOf(EXPONENT) : -1;
+    private static void drawText(Target target, Font font, DurabilityText label, int color, float originX,
+            float originY) {
+        boolean shadow = OverlayModConfig.durabilityShadow;
+        String text = label.text();
+        int exponentIndex = label.subscript() ? text.indexOf(EXPONENT_SYMBOL) : -1;
         if (exponentIndex < 0) {
-            TextRenderUtil.drawText(graphics, font, text, 0, 0, color, shadow);
+            target.text(text, originX, originY, TEXT_SCALE, color, shadow);
             return;
         }
 
-        String mantissa = text.substring(0, exponentIndex);
-        String exponent = text.substring(exponentIndex + EXPONENT.length());
-        int cursorX = 0;
-
-        if (!mantissa.isEmpty()) {
-            TextRenderUtil.drawText(graphics, font, mantissa, cursorX, 0, color, shadow);
-            cursorX += font.width(mantissa);
-        }
-
-        int exponentY = Math.round(1f - OverlayModConfig.durabilityExponentYOffset);
-        TextRenderUtil.drawText(graphics, font, EXPONENT, cursorX, exponentY, color, shadow);
-        cursorX += font.width(EXPONENT);
-
-        if (!exponent.isEmpty()) {
-            TextRenderUtil.drawText(graphics, font, exponent, cursorX, 0, color, shadow);
-        }
+        String baseDigits = text.substring(0, exponentIndex);
+        String exponentDigits = text.substring(exponentIndex + EXPONENT_SYMBOL.length());
+        float exponentYShift = Math.round(1f - OverlayModConfig.durabilityExponentYOffset) * TEXT_SCALE;
+        float cursorX = originX;
+        target.text(baseDigits, cursorX, originY, TEXT_SCALE, color, shadow);
+        cursorX += font.width(baseDigits) * TEXT_SCALE;
+        target.text(EXPONENT_SYMBOL, cursorX, originY + exponentYShift, TEXT_SCALE, color, shadow);
+        cursorX += font.width(EXPONENT_SYMBOL) * TEXT_SCALE;
+        target.text(exponentDigits, cursorX, originY, TEXT_SCALE, color, shadow);
     }
 
     private static DurabilityText durabilityText(ItemStack stack) {
         if (stack.getMaxDamage() == 0 || stack.getComponents().has(UNBREAKABLE)) {
             return DurabilityText.NONE;
         }
-        int remaining = stack.getMaxDamage() - stack.getDamageValue();
+        int remainingDurability = stack.getMaxDamage() - stack.getDamageValue();
 
         if (OverlayModConfig.durabilityAsPercentage) {
-            int percentage = (int) (remaining / (double) stack.getMaxDamage() * 100);
+            int percentage = (int) (remainingDurability / (double) stack.getMaxDamage() * 100);
             if (percentage >= 100 && !OverlayModConfig.durabilityShowAtFull) {
                 return DurabilityText.NONE;
             }
-            return new DurabilityText(String.format("%d%%", percentage), false);
+            return new DurabilityText(percentage + "%", false);
         }
 
         boolean subscript = OverlayModConfig.durabilityUseSubscript;
-        int digitLimit = subscript ? OverlayModConfig.durabilitySubscriptDigitLimit : OverlayModConfig.durabilityNormalDigitLimit;
-        long threshold = (long) Math.pow(10, digitLimit);
+        int digitLimit = subscript ? OverlayModConfig.durabilitySubscriptDigitLimit
+                : OverlayModConfig.durabilityNormalDigitLimit;
+        long maxPlainValue = (long) Math.pow(10, digitLimit);
 
-        String text = remaining < threshold
-                ? Integer.toString(remaining)
-                : String.format("%.0e", (double) remaining).replaceAll("e\\+0", EXPONENT);
+        String formatted = remainingDurability < maxPlainValue
+                ? Integer.toString(remainingDurability)
+                : String.format("%.0e", (double) remainingDurability).replaceAll("e\\+0", EXPONENT_SYMBOL);
 
-        return new DurabilityText(subscript ? FormatCodes.toSubscript(text) : text, subscript);
+        return new DurabilityText(subscript ? Subscript.of(formatted) : formatted, subscript);
     }
 }

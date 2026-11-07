@@ -4,6 +4,7 @@ import static triangled.overlaymod.client.utils.AxisSign.NEGATIVE;
 import static triangled.overlaymod.client.utils.AxisSign.NONE;
 import static triangled.overlaymod.client.utils.AxisSign.POSITIVE;
 
+// The 8 compass directions, and which way each one moves along X and Z.
 public enum CompassDirection {
     NORTH(NONE, NEGATIVE),
     NORTH_EAST(POSITIVE, NEGATIVE),
@@ -14,7 +15,7 @@ public enum CompassDirection {
     WEST(NEGATIVE, NONE),
     NORTH_WEST(NEGATIVE, NEGATIVE);
 
-    private static final CompassDirection[] VALUES = values();
+    private static final CompassDirection[] DIRECTIONS = values();
 
     private final AxisSign xSign;
     private final AxisSign zSign;
@@ -24,16 +25,19 @@ public enum CompassDirection {
         this.zSign = zSign;
     }
 
+    // Returns the direction for a yaw, using 8 directions or just 4.
     public static CompassDirection fromYaw(float yaw, boolean includeOrdinals) {
-        int sectors = includeOrdinals ? VALUES.length : VALUES.length / 2;
-        int sector = Math.floorMod(Math.round((yaw + 180.0F) / (360.0F / sectors)), sectors);
-        return VALUES[sector * (VALUES.length / sectors)];
+        int sectorCount = includeOrdinals ? DIRECTIONS.length : DIRECTIONS.length / 2;
+        int sectorIndex = Math.floorMod(Math.round((yaw + 180.0F) / (360.0F / sectorCount)), sectorCount);
+        return DIRECTIONS[sectorIndex * (DIRECTIONS.length / sectorCount)];
     }
 
+    // Returns which way this direction moves along X.
     public AxisSign xSign() {
         return xSign;
     }
 
+    // Returns which way this direction moves along Z.
     public AxisSign zSign() {
         return zSign;
     }

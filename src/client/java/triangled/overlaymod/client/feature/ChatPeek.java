@@ -5,9 +5,9 @@ import net.minecraft.client.Minecraft;
 import triangled.overlaymod.client.OverlayModConfig;
 
 public final class ChatPeek {
-    private static boolean keyHeld = false;
-    private static boolean toggledOn = false;
-    private static boolean peeking = false;
+    private static boolean keyHeld;
+    private static boolean toggledOn;
+    private static boolean peeking;
 
     private ChatPeek() {
     }
@@ -27,15 +27,15 @@ public final class ChatPeek {
         ClientTickEvents.END_CLIENT_TICK.register(ChatPeek::tick);
     }
 
-    private static void tick(Minecraft client) {
-        boolean active = OverlayModConfig.enabled && OverlayModConfig.chatPeekEnabled;
-        if (!active || !OverlayModConfig.chatPeekToggle) {
+    private static void tick(Minecraft minecraft) {
+        boolean featureEnabled = OverlayModConfig.enabled && OverlayModConfig.chatPeekEnabled;
+        if (!featureEnabled || !OverlayModConfig.chatPeekToggle) {
             toggledOn = false;
         }
-        boolean nowPeeking = active && (OverlayModConfig.chatPeekToggle ? toggledOn : keyHeld);
-        if (peeking && !nowPeeking && client.gui != null && client.gui.hud != null) {
-            client.gui.hud.getChat().resetChatScroll();
+        boolean shouldPeek = featureEnabled && (OverlayModConfig.chatPeekToggle ? toggledOn : keyHeld);
+        if (peeking && !shouldPeek && minecraft.gui != null) {
+            minecraft.gui.hud.getChat().resetChatScroll();
         }
-        peeking = nowPeeking;
+        peeking = shouldPeek;
     }
 }

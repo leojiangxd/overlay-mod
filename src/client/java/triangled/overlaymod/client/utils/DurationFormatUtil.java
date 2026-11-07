@@ -1,33 +1,37 @@
 package triangled.overlaymod.client.utils;
 
+// Formats seconds using a pattern like m:ss, where d/h/m/s are time units.
 public final class DurationFormatUtil {
     private DurationFormatUtil() {
     }
 
+    // The time units a pattern can use, and the letter for each.
     private enum Field {
         DAYS('d', 86400, 0),
         HOURS('h', 3600, 24),
         MINUTES('m', 60, 60),
         SECONDS('s', 1, 60);
 
-        private final char symbol;
-        private final long unitSeconds;
-        private final long wrap;
+        private final char patternChar;
+        private final long secondsPerUnit;
+        private final long rolloverAt;
 
-        Field(char symbol, long unitSeconds, long wrap) {
-            this.symbol = symbol;
-            this.unitSeconds = unitSeconds;
-            this.wrap = wrap;
+        Field(char patternChar, long secondsPerUnit, long rolloverAt) {
+            this.patternChar = patternChar;
+            this.secondsPerUnit = secondsPerUnit;
+            this.rolloverAt = rolloverAt;
         }
 
+        // Returns how many of this unit are in the time, after larger units.
         long valueOf(long totalSeconds) {
-            long value = totalSeconds / unitSeconds;
-            return wrap == 0 ? value : value % wrap;
+            long units = totalSeconds / secondsPerUnit;
+            return rolloverAt == 0 ? units : units % rolloverAt;
         }
 
-        static Field of(char symbol) {
+        // Returns the unit for a pattern letter, or null if it isn't one.
+        static Field of(char patternChar) {
             for (Field field : values()) {
-                if (field.symbol == symbol) {
+                if (field.patternChar == patternChar) {
                     return field;
                 }
             }
@@ -35,42 +39,44 @@ public final class DurationFormatUtil {
         }
     }
 
+    // Builds the text by swapping each run of unit letters for its value.
     public static String format(long totalSeconds, String pattern) {
         if (pattern == null || pattern.isEmpty()) {
             return "";
         }
 
         StringBuilder result = new StringBuilder();
-        int i = 0;
-        int length = pattern.length();
-        while (i < length) {
-            char c = pattern.charAt(i);
+        int index = 0;
+        int patternLength = pattern.length();
+        while (index < patternLength) {
+            char currentChar = pattern.charAt(index);
 
-            if (c == '\\' && i + 1 < length) {
-                result.append(pattern.charAt(i + 1));
-                i += 2;
+            if (currentChar == '\\' && index + 1 < patternLength) {
+                result.append(pattern.charAt(index + 1));
+                index += 2;
                 continue;
             }
 
-            Field field = Field.of(c);
+            Field field = Field.of(currentChar);
             if (field == null) {
-                result.append(c);
-                i++;
+                result.append(currentChar);
+                index++;
                 continue;
             }
 
-            int runStart = i;
-            while (i < length && pattern.charAt(i) == c) {
-                i++;
+            int runStart = index;
+            while (index < patternLength && pattern.charAt(index) == currentChar) {
+                index++;
             }
-            result.append(padded(field.valueOf(totalSeconds), i - runStart));
+            result.append(padded(field.valueOf(totalSeconds), index - runStart));
         }
 
         return result.toString();
     }
 
-    private static String padded(long value, int width) {
+    // Returns the number padded with leading zeros to the given length.
+    private static String padded(long value, int minDigits) {
         String digits = String.valueOf(value);
-        return digits.length() >= width ? digits : "0".repeat(width - digits.length()) + digits;
+        return digits.length() >= minDigits ? digits : "0".repeat(minDigits - digits.length()) + digits;
     }
 }

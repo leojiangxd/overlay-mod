@@ -1,13 +1,15 @@
 package triangled.overlaymod.client.utils;
 
+// Left, middle or right alignment.
 public enum TextAlignment {
     LEFT, MIDDLE, RIGHT;
 
-    public float align(float slack) {
+    // Returns how far to shift something with the given space left over.
+    public float align(float extraSpace) {
         return switch (this) {
             case LEFT -> 0;
-            case MIDDLE -> slack / 2f;
-            case RIGHT -> slack;
+            case MIDDLE -> extraSpace / 2f;
+            case RIGHT -> extraSpace;
         };
     }
 }

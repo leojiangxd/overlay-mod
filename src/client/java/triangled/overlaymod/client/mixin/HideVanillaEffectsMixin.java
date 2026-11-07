@@ -9,12 +9,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import triangled.overlaymod.client.hud.StatusEffectsHud;
 
+// Hides vanilla effect icons when the custom status effects HUD replaces them.
 @Mixin(Hud.class)
 public class HideVanillaEffectsMixin {
     @Inject(method = "extractEffects", at = @At("HEAD"), cancellable = true)
-    private void hideVanillaEffects(GuiGraphicsExtractor graphics, DeltaTracker tickCounter, CallbackInfo ci) {
+    private void hideVanillaEffects(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo callback) {
         if (StatusEffectsHud.replacesVanilla()) {
-            ci.cancel();
+            callback.cancel();
         }
     }
 }

@@ -8,12 +8,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import triangled.overlaymod.client.hud.BossBarHud;
 
+// Hides vanilla boss bars when the custom boss bar HUD replaces them.
 @Mixin(BossHealthOverlay.class)
 public class HideVanillaBossBarsMixin {
     @Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
-    private void hideVanillaBossBars(GuiGraphicsExtractor graphics, CallbackInfo ci) {
+    private void hideVanillaBossBars(GuiGraphicsExtractor graphics, CallbackInfo callback) {
         if (BossBarHud.replacesVanilla()) {
-            ci.cancel();
+            callback.cancel();
         }
     }
 }
