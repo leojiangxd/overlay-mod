@@ -116,9 +116,10 @@ public class CoordinatesHud extends MinecraftTextHud {
         return text.toString();
     }
 
-    // Adds one axis to the text with its prefix, sign and suffix.
+    // Adds one axis to the text: its coordinate with prefix and suffix, then
+    // its sign with the sign's prefix and suffix.
     private void appendAxis(StringBuilder text, String prefix, double value, AxisSign sign, String suffix) {
-        text.append(prefix).append(coordinate(value)).append(signLabel(sign)).append(suffix);
+        text.append(axisText(prefix, value, suffix)).append(signLabel(sign));
     }
 
     // Returns one coordinate with its prefix and suffix.
