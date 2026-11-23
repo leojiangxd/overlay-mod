@@ -12,7 +12,7 @@ import org.polyfrost.compose.composables.ComposablesKt;
 import org.polyfrost.compose.composables.PolyModifier;
 import org.polyfrost.compose.composables.PolyModifierKt;
 import org.polyfrost.compose.render.RenderContext;
-import org.polyfrost.oneconfig.api.ui.v1.item.PolyItemIconKt;
+import org.polyfrost.compose.minecraft.mc.McItemIconKt;
 
 // Shortcuts for calling Compose and PolyUI
 public final class Compose {
@@ -61,6 +61,7 @@ public final class Compose {
 
     // Draws an item icon at the given size.
     public static void item(Composer composer, ItemStack stack, float size, PolyModifier modifier) {
-        PolyItemIconKt.PolyItemIcon(stack, size, modifier, false, null, composer, 0, 0);
+        // 96 = default mask: alpha and maxScale use library defaults
+        McItemIconKt.NodeMcItemIcon(stack, size, modifier, false, null, 0f, 0f, composer, 0, 96);
     }
 }

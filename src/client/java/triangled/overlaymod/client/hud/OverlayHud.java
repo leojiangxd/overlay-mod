@@ -151,8 +151,10 @@ public abstract class OverlayHud extends Hud {
     @Override
     public void Content(Composer composer, int changedFlags) {
         Layout layout = layout(contentSize.getValue());
-        PolyModifier box = Compose.at(Compose.sized(layout.boxWidth(), layout.boxHeight()), 0, pushDown.getValue());
-        Compose.box(composer, hudBackground(box), childComposer -> content(childComposer, layout));
+        PolyModifier size = Compose.sized(layout.boxWidth(), layout.boxHeight());
+        // Outer box is in normal flow because polycompose 3 ignores absolute children when sizing the HUD root.
+        Compose.box(composer, size, outer -> Compose.box(outer, hudBackground(Compose.at(size, 0, pushDown.getValue())),
+                childComposer -> content(childComposer, layout)));
     }
 
     // Draws the HUD's content by calling paint(). Some HUDs override this.
