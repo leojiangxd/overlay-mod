@@ -22,10 +22,9 @@ public final class BossBars {
     private BossBars() {
     }
 
-    // Returns how far to move a HUD down so it doesn't overlap the boss bars.
     public static float pushBelow(Hud hud, float extraGap) {
         Bounds bars = screenBounds();
-        Bounds hudBounds = Bounds.ofSize(hud.getFrameX(), hud.getFrameY(), hud.getScaledWidth(), hud.getScaledHeight());
+        Bounds hudBounds = Bounds.of(hud);
         if (bars == null || !hudBounds.overlaps(bars)) {
             return 0F;
         }
@@ -33,19 +32,15 @@ public final class BossBars {
         return pushDown / Math.max(0.01F, hud.getEffectiveScale());
     }
 
-    // Returns the screen area the boss bars take up, or null if none are shown.
     private static Bounds screenBounds() {
         for (Hud hud : HudManager.INSTANCE.getActiveInstances()) {
             if (hud.getClass().getName().equals(VANILLAHUD_BOSS_BAR)) {
-                return !hud.getHidden() && hud.shouldShow()
-                        ? Bounds.ofSize(hud.getFrameX(), hud.getFrameY(), hud.getScaledWidth(), hud.getScaledHeight())
-                        : null;
+                return !hud.getHidden() && hud.shouldShow() ? Bounds.of(hud) : null;
             }
         }
         return vanillaBounds();
     }
 
-    // Returns the screen area vanilla's boss bars take up, or null if none.
     private static Bounds vanillaBounds() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.gui == null) {

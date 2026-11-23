@@ -10,7 +10,6 @@ import net.minecraft.world.item.ItemStack;
 import org.polyfrost.compose.render.PolyColor;
 import org.polyfrost.compose.render.RenderContext;
 import triangled.overlaymod.client.OverlayModConfig;
-import triangled.overlaymod.client.utils.Colors;
 import triangled.overlaymod.client.utils.Subscript;
 import triangled.overlaymod.client.utils.TextAlignment;
 
@@ -114,7 +113,8 @@ public final class DurabilityOverlay {
     }
 
     private static int textColor(ItemStack stack) {
-        int customColor = Colors.argb(OverlayModConfig.durabilityColor);
+        PolyColor color = OverlayModConfig.durabilityColor;
+        int customColor = color == null ? 0xFFFFFFFF : color.getArgb();
         int rgb = OverlayModConfig.durabilityUseCustomColor ? (customColor & 0xFFFFFF) : stack.getBarColor();
         return ARGB.color(ARGB.alpha(customColor), rgb);
     }

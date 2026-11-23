@@ -41,7 +41,6 @@ public class CompassHud extends MinecraftTextHud {
         super("overlaymod_compass.yml", "Compass", Hud.Category.Companion.getINFO());
     }
 
-    // Returns the text for the direction the player is facing.
     @Override
     protected String getText() {
         LocalPlayer player = player();
@@ -51,27 +50,16 @@ public class CompassHud extends MinecraftTextHud {
         return directionText(CompassDirection.fromYaw(player.getYRot(1.0F), ordinalDirections));
     }
 
-    // Shows north in the HUD editor when there's no direction to show.
     @Override
     protected String previewText() {
         return directionText(CompassDirection.NORTH);
     }
 
-    // Returns the text set for the given direction.
     private String directionText(CompassDirection direction) {
-        return switch (direction) {
-            case NORTH -> dirNorth;
-            case NORTH_EAST -> dirNorthEast;
-            case EAST -> dirEast;
-            case SOUTH_EAST -> dirSouthEast;
-            case SOUTH -> dirSouth;
-            case SOUTH_WEST -> dirSouthWest;
-            case WEST -> dirWest;
-            case NORTH_WEST -> dirNorthWest;
-        };
+        return new String[] { dirNorth, dirNorthEast, dirEast, dirSouthEast, dirSouth, dirSouthWest, dirWest,
+                dirNorthWest }[direction.ordinal()];
     }
 
-    // Default position of HUD in OneConfig's HUD editor
     @Override
     public Pair<Float, Float> defaultPosition() {
         return new Pair<>(3.0F, 14.0F);

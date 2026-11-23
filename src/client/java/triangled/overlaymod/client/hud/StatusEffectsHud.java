@@ -142,17 +142,10 @@ public class StatusEffectsHud extends OverlayHud {
     public float durationYOffset = 3.5F;
     // ---------------------------------------
 
-    // The effects split into a top row and a bottom row.
-    private record Rows(List<MobEffectInstance> top, List<MobEffectInstance> bottom) {
-    }
-
-    // One effect and where its icon goes.
     private record Slot(MobEffectInstance effect, float x, float y) {
     }
 
-    // Scale and offsets for one kind of label, like the level or duration.
     private record LabelStyle(HudTextStyle textStyle, float scale, float xOffset, float yOffset) {
-        // Returns a label centered over the slot at the given line.
         Label at(Slot slot, String labelText, float lineTop, float extraYOffset, PolyColor color) {
             float x = (SLOT_SIZE - textStyle.width(labelText, scale)) / 2f + scale * (0.5f + xOffset);
             float y = lineTop + (LINE_HEIGHT - textStyle.height(scale)) / 2f + scale * (extraYOffset - yOffset);
@@ -160,20 +153,16 @@ public class StatusEffectsHud extends OverlayHud {
         }
     }
 
-    // A piece of text, where it goes, and how to draw it.
     private record Label(String text, float x, float y, LabelStyle style, PolyColor color) {
-        // Returns the area this label takes up.
         Bounds bounds() {
             return style.textStyle().bounds(text, x, y, style.scale());
         }
 
-        // Draws this label.
         void draw(RenderContext renderContext) {
             style.textStyle().draw(renderContext, text, x, y, color, style.scale());
         }
     }
 
-    // Everything needed to draw the HUD: slots, labels and their area.
     private record Frame(List<Slot> slots, List<Label> labels, Bounds bounds) {
         static final Frame EMPTY = new Frame(List.of(), List.of(), Bounds.ofSize(0, 0, SLOT_SIZE, SLOT_SIZE));
     }
@@ -184,29 +173,27 @@ public class StatusEffectsHud extends OverlayHud {
         super("overlaymod_status_effects.yml", "Status Effects", Hud.Category.Companion.getPLAYER());
     }
 
-    // Returns true if any visible effects HUD is set to hide vanilla icons.
     public static boolean replacesVanilla() {
-        return activeHuds(StatusEffectsHud.class).stream().anyMatch(hud -> hud.hideVanilla && !hud.getHidden());
+        return HudManager.INSTANCE.getActiveInstances().stream()
+                .anyMatch(hud -> hud instanceof StatusEffectsHud effects && effects.hideVanilla && !effects.getHidden());
     }
 
-    // Returns the effects to show, split into rows if Separate Negative is on.
-    private Rows rows() {
+    private List<List<MobEffectInstance>> rows() {
         List<MobEffectInstance> effects = activeEffects();
         if (effects.isEmpty() && isEditing()) {
             effects = previewEffects();
         }
         if (!separateNegative) {
-            return new Rows(effects, List.of());
+            return List.of(effects);
         }
         List<MobEffectInstance> beneficial = new ArrayList<>();
         List<MobEffectInstance> harmful = new ArrayList<>();
         for (MobEffectInstance effect : effects) {
             (effect.getEffect().value().isBeneficial() ? beneficial : harmful).add(effect);
         }
-        return beneficial.isEmpty() ? new Rows(harmful, List.of()) : new Rows(beneficial, harmful);
+        return beneficial.isEmpty() ? List.of(harmful) : List.of(beneficial, harmful);
     }
 
-    // Returns the player's effects that show an icon, in vanilla order.
     private static List<MobEffectInstance> activeEffects() {
         LocalPlayer player = player();
         if (player == null) {
@@ -215,7 +202,6 @@ public class StatusEffectsHud extends OverlayHud {
         return player.getActiveEffects().stream().filter(MobEffectInstance::showIcon).sorted().toList();
     }
 
-    // Returns sample effects for previewing the HUD in the editor.
     private static List<MobEffectInstance> previewEffects() {
         return Stream.of(
                 new MobEffectInstance(MobEffects.SPEED, TICKS_PER_SECOND * 185, 1),
@@ -224,34 +210,29 @@ public class StatusEffectsHud extends OverlayHud {
                 new MobEffectInstance(MobEffects.POISON, TICKS_PER_SECOND * 12, 2)).sorted().toList();
     }
 
-    // Returns the distance from one icon to the next.
-    private int stride() {
-        return SLOT_SIZE + effectGap;
-    }
-
-    // Returns how wide a row of the given number of icons is.
     private float rowWidth(int count) {
-        return count == 0 ? 0 : (count - 1) * stride() + SLOT_SIZE;
+        return count == 0 ? 0 : (count - 1) * (SLOT_SIZE + effectGap) + SLOT_SIZE;
     }
 
-    // Places every effect's icon in its row.
-    private List<Slot> slots(Rows rows) {
-        float rowAreaWidth = Math.max(SLOT_SIZE, Math.max(rowWidth(rows.top().size()), rowWidth(rows.bottom().size())));
+    private List<Slot> slots(List<List<MobEffectInstance>> rows) {
+        float rowAreaWidth = SLOT_SIZE;
+        for (List<MobEffectInstance> row : rows) {
+            rowAreaWidth = Math.max(rowAreaWidth, rowWidth(row.size()));
+        }
         List<Slot> slots = new ArrayList<>();
-        addRow(slots, rows.top(), rowAreaWidth, 0);
-        addRow(slots, rows.bottom(), rowAreaWidth, SLOT_SIZE + rowGap);
+        for (int i = 0; i < rows.size(); i++) {
+            addRow(slots, rows.get(i), rowAreaWidth, i * (SLOT_SIZE + rowGap));
+        }
         return slots;
     }
 
-    // Places one row of icons, lined up with Row Alignment.
     private void addRow(List<Slot> slots, List<MobEffectInstance> effects, float areaWidth, float y) {
         float startX = rowAlignment.align(areaWidth - rowWidth(effects.size()));
         for (int i = 0; i < effects.size(); i++) {
-            slots.add(new Slot(effects.get(i), startX + i * stride(), y));
+            slots.add(new Slot(effects.get(i), startX + i * (SLOT_SIZE + effectGap), y));
         }
     }
 
-    // Builds the level and duration labels for every icon.
     private List<Label> labels(List<Slot> slots) {
         LabelStyle amplifierStyle = new LabelStyle(text(), amplifierScale, amplifierXOffset, amplifierYOffset);
         LabelStyle durationStyle = new LabelStyle(text(), durationScale, durationXOffset, durationYOffset);
@@ -270,7 +251,6 @@ public class StatusEffectsHud extends OverlayHud {
         return labels;
     }
 
-    // Returns the area the icons and labels take up.
     private Bounds bounds(List<Slot> slots, List<Label> labels) {
         int padding = renderBackground ? 0 : ICON_PADDING;
         List<Bounds> areas = new ArrayList<>();
@@ -281,11 +261,9 @@ public class StatusEffectsHud extends OverlayHud {
         for (Label label : labels) {
             areas.add(label.bounds());
         }
-        return Bounds.enclosing(areas).orElse(Frame.EMPTY.bounds());
+        return areas.stream().reduce(Bounds::union).orElse(Frame.EMPTY.bounds());
     }
 
-    // OneConfig calls this every update to lay out the effects, resize, and
-    // move below any boss bars.
     @Override
     protected void refresh() {
         List<Slot> slots = slots(rows());
@@ -299,19 +277,16 @@ public class StatusEffectsHud extends OverlayHud {
         setPush(0f, belowBossBars && !isEditing() ? BossBars.pushBelow(this, bossBarYOffset) : 0f);
     }
 
-    // Hides the HUD when there are no effects to show.
     @Override
     public boolean shouldShow() {
         return !displayedFrame.slots().isEmpty();
     }
 
-    // Places the HUD at the top center of the screen by default.
     @Override
     public Pair<Float, Float> defaultPosition() {
         return new Pair<>((HudManager.guiScreenWidth - getScaledWidth()) / 2f, 2.0F);
     }
 
-    // Draws the backgrounds, icons and labels.
     @Override
     protected void paint(RenderContext renderContext, float x, float y) {
         Frame frame = displayedFrame;
@@ -326,7 +301,6 @@ public class StatusEffectsHud extends OverlayHud {
         renderContext.translate(-offsetX, -offsetY);
     }
 
-    // Draws the vanilla effect frame behind a slot.
     private static void drawBackground(RenderContext renderContext, Slot slot) {
         PolyBitmap sprite = SpriteCache
                 .guiSprite(slot.effect().isAmbient() ? EFFECT_BACKGROUND_AMBIENT : EFFECT_BACKGROUND);
@@ -335,7 +309,6 @@ public class StatusEffectsHud extends OverlayHud {
         }
     }
 
-    // Draws an effect's icon, blinking it when the effect is about to end.
     private void drawIcon(RenderContext renderContext, Slot slot) {
         PolyBitmap sprite = SpriteCache
                 .sprite(net.minecraft.client.gui.Hud.getMobEffectSprite(slot.effect().getEffect()));
@@ -358,12 +331,10 @@ public class StatusEffectsHud extends OverlayHud {
                 + Mth.cos(ticksLeft * (float) Math.PI / 5.0F) * Mth.clamp(blinkWeight / 10.0F * 0.25F, 0.0F, 0.25F);
     }
 
-    // Returns true when the effect is within the Expiring Threshold.
     private boolean isExpiringSoon(MobEffectInstance effect) {
         return !effect.isInfiniteDuration() && effect.getDuration() / TICKS_PER_SECOND <= expirationDuration;
     }
 
-    // Returns the duration color: expiring, ambient, or the normal text color.
     private PolyColor durationColor(MobEffectInstance effect) {
         if (isExpiringSoon(effect)) {
             return expirationColor;
@@ -371,14 +342,12 @@ public class StatusEffectsHud extends OverlayHud {
         return effect.isAmbient() ? ambientDurationColor : text().textColor();
     }
 
-    // Returns the level text, like 2 for Speed II, with its prefix.
     private String amplifierLabel(MobEffectInstance effect) {
         String level = String.valueOf(effect.getAmplifier() + 1);
         return (effect.isAmbient() ? ambientAmplifierText : amplifierText)
                 + (subscriptAmplifier ? Subscript.of(level) : level);
     }
 
-    // Returns the time left text, using the format for that much time.
     private String durationLabel(MobEffectInstance effect) {
         String prefix = durationText + (effect.isAmbient() ? ambientDurationText : "");
         if (effect.isInfiniteDuration()) {
@@ -392,7 +361,6 @@ public class StatusEffectsHud extends OverlayHud {
         return prefix + expiringPrefix + DurationFormatUtil.format(seconds, pattern(seconds));
     }
 
-    // Returns the format setting for how much time is left.
     private String pattern(long seconds) {
         if (seconds >= 86400) {
             return dayFormat;

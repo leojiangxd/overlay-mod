@@ -25,14 +25,13 @@ import triangled.overlaymod.client.utils.Bounds;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
 import org.polyfrost.oneconfig.api.hud.v1.HudManager;
 import triangled.overlaymod.client.feature.DurabilityOverlay;
-import triangled.overlaymod.client.utils.Colors;
 import triangled.overlaymod.client.utils.Compose;
 import triangled.overlaymod.client.utils.SpriteCache;
 
 public class ArmorHud extends OverlayHud {
     private static final String HOTBAR_SPRITE = "hud/hotbar";
     private static final float ITEM_SIZE = 16;
-    private static final PolyColor NO_TINT = Colors.white();
+    private static final PolyColor NO_TINT = new PolyColor(0xFFFFFFFF, false, 1.0F);
     private static final int HOTBAR_WIDTH = 182;
     private static final int HOTBAR_HEIGHT = 22;
     private static final int OFFHAND_WIDTH = 29;
@@ -72,8 +71,6 @@ public class ArmorHud extends OverlayHud {
         super("overlaymod_armor.yml", "Armor", Hud.Category.Companion.getPLAYER());
     }
 
-    // Returns the player's armor, or preview armor while editing with none
-    // worn. Reversed if reverseArmorOrder is on.
     private List<ItemStack> equipment() {
         List<ItemStack> armor = wornArmor();
         if (armor.stream().allMatch(ItemStack::isEmpty) && isEditing()) {
@@ -85,8 +82,6 @@ public class ArmorHud extends OverlayHud {
         return armor;
     }
 
-    // Returns the player's armor from.
-    // Includes empty slots when showEmptyArmor is on.
     private List<ItemStack> wornArmor() {
         List<ItemStack> armor = new ArrayList<>(ARMOR_SLOTS.length);
         if (!(Minecraft.getInstance().getCameraEntity() instanceof Player player))
@@ -100,14 +95,11 @@ public class ArmorHud extends OverlayHud {
         return armor;
     }
 
-    // Returns a list of diamond armor to preview the HUD when no armor is worn.
     private static List<ItemStack> previewArmor() {
         return new ArrayList<>(List.of(new ItemStack(Items.DIAMOND_HELMET), new ItemStack(Items.DIAMOND_CHESTPLATE),
                 new ItemStack(Items.DIAMOND_LEGGINGS), new ItemStack(Items.DIAMOND_BOOTS)));
     }
 
-    // OneConfig calls this every update so the HUD can grab the latest game info
-    // and resize before it's drawn.
     @Override
     protected void refresh() {
         List<ItemStack> currentArmor = equipment();
@@ -119,8 +111,6 @@ public class ArmorHud extends OverlayHud {
         setPush(avoidOffhand && !isEditing() ? offhandPush() : 0f, 0f);
     }
 
-    // Returns how far to move the HUD sideways, away from the hotbar, so it
-    // doesn't overlap vanilla's offhand slot.
     private float offhandPush() {
         LocalPlayer player = player();
         if (player == null || player.getOffhandItem().isEmpty()) {
@@ -132,7 +122,7 @@ public class ArmorHud extends OverlayHud {
         float slotX = slotOnLeft ? hotbarLeft - OFFHAND_WIDTH : hotbarLeft + HOTBAR_WIDTH;
         Bounds slot = Bounds.ofSize(slotX, HudManager.guiScreenHeight - OFFHAND_HEIGHT, OFFHAND_WIDTH,
                 OFFHAND_HEIGHT);
-        Bounds hud = Bounds.ofSize(getFrameX(), getFrameY(), getScaledWidth(), getScaledHeight());
+        Bounds hud = Bounds.of(this);
         if (!hud.overlaps(slot)) {
             return 0F;
         }
@@ -141,31 +131,25 @@ public class ArmorHud extends OverlayHud {
         return push / Math.max(0.01F, getEffectiveScale());
     }
 
-    // Hides the HUD outside a world, while spectating, or no armor to show.
     @Override
     public boolean shouldShow() {
         LocalPlayer player = player();
         return player != null && !player.isSpectator() && !displayedArmor.getValue().isEmpty();
     }
 
-    // Default position of HUD in OneConfig's HUD editor
     @Override
     public Pair<Float, Float> defaultPosition() {
         return new Pair<>(HudManager.guiScreenWidth - getScaledWidth(), HudManager.guiScreenHeight - getScaledHeight());
     }
 
-    // Returns the slot's x position, relative to the HUD's top-left corner.
     private int slotX(int index) {
         return vertical ? SLOT_PADDING : SLOT_PADDING + index * SLOT_SIZE;
     }
 
-    // Returns the slot's y position, relative to the HUD's top-left corner.
     private int slotY(int index) {
         return vertical ? SLOT_PADDING + index * SLOT_SIZE : SLOT_PADDING;
     }
 
-    // Draws the HUD in three layers: drawBackground for the hotbar texture,
-    // Compose.item for each armor icon, then drawDecorations on top.
     @Override
     protected void content(Composer composer, Layout layout) {
         List<ItemStack> armor = displayedArmor.getValue();
@@ -184,8 +168,6 @@ public class ArmorHud extends OverlayHud {
                 (renderContext, x, y) -> drawDecorations(renderContext, x + originX, y + originY, armor));
     }
 
-    // Draws the durability bar and text with DurabilityOverlay, plus the stack
-    // count, over each non-empty armor slot.
     private void drawDecorations(RenderContext renderContext, float x, float y, List<ItemStack> armor) {
         Font font = font();
         for (int i = 0; i < armor.size(); i++) {
@@ -198,7 +180,7 @@ public class ArmorHud extends OverlayHud {
             DurabilityOverlay.render(renderContext, font, stack, itemX, itemY);
             if (stack.getCount() > 1) {
                 String countText = Integer.toString(stack.getCount());
-                renderContext.mcText(countText, itemX + 17 - font.width(countText), itemY + 9, Colors.WHITE, true, 1f);
+                renderContext.mcText(countText, itemX + 17 - font.width(countText), itemY + 9, 0xFFFFFFFF, true, 1f);
             }
         }
     }

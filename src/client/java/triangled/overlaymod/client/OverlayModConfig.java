@@ -17,7 +17,6 @@ import org.polyfrost.oneconfig.api.ui.v1.keybind.KeybindHelper;
 import org.polyfrost.oneconfig.api.ui.v1.keybind.OneConfigKeybind;
 import triangled.overlaymod.client.feature.ChatPeek;
 import triangled.overlaymod.client.feature.BarrierVisibility;
-import triangled.overlaymod.client.utils.Colors;
 import triangled.overlaymod.client.utils.TextAlignment;
 
 public class OverlayModConfig extends Config {
@@ -59,7 +58,7 @@ public class OverlayModConfig extends Config {
     public static boolean durabilityUseCustomColor = false;
 
     @Color(title = "Color", description = "Colour of the durability text when a custom colour is in use", category = "Durability", subcategory = "Style")
-    public static PolyColor durabilityColor = Colors.white();
+    public static PolyColor durabilityColor = new PolyColor(0xFFFFFFFF, false, 1.0F);
 
     // POSITION
 

@@ -11,10 +11,10 @@ import org.polyfrost.oneconfig.api.config.v1.annotations.Slider;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Text;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
-import triangled.overlaymod.client.utils.AxisSign;
 import triangled.overlaymod.client.utils.CompassDirection;
 
 public class CoordinatesHud extends MinecraftTextHud {
+    // Sign Gap 0 means -1, so the sign starts 1 pixel into the coordinate.
     private static final float BASE_SIGN_GAP = -1.0F;
 
     // --------------- CONFIGS ---------------
@@ -70,11 +70,9 @@ public class CoordinatesHud extends MinecraftTextHud {
     public String signNone = "";
     // ---------------------------------------
 
-    // One line of the vertical layout: the coordinate and its axis sign.
     private record Row(String coordinate, String sign) {
     }
 
-    // The vertical rows plus the widths of the coordinate and sign columns.
     private record VerticalLayout(List<Row> rows, float coordinateWidth, float signWidth) {
         static final VerticalLayout EMPTY = new VerticalLayout(List.of(), 0, 0);
     }
@@ -85,52 +83,25 @@ public class CoordinatesHud extends MinecraftTextHud {
         super("overlaymod_coordinates.yml", "Coordinates", Hud.Category.Companion.getINFO());
     }
 
-    // Returns the player's coordinates on one line, with facing signs if enabled.
     @Override
     protected String getText() {
         return joined(currentRows());
     }
 
-    // Shows sample coordinates in the HUD editor when there's no player.
     @Override
     protected String previewText() {
         return joined(rows(0, 64, 0, null));
     }
 
-    // Joins the rows into one line with the separator between each axis.
     private String joined(List<Row> rows) {
         return rows.stream().map(row -> row.coordinate() + row.sign()).collect(Collectors.joining(separator));
     }
 
-    // Returns the direction the player is facing, or null if signs are off.
-    private CompassDirection facing(LocalPlayer player) {
-        return axisSigns ? CompassDirection.fromYaw(player.getYRot(1.0F), true) : null;
+    private String signLabel(int sign) {
+        String text = sign > 0 ? signPos : sign < 0 ? signNeg : signNone;
+        return text.isEmpty() ? "" : signPrefix + text + signSuffix;
     }
 
-    // Returns one coordinate with its prefix and suffix.
-    private String axisText(String prefix, double value, String suffix) {
-        return prefix + coordinate(value) + suffix;
-    }
-
-    // Returns the sign with its prefix and suffix, or blank if there's none.
-    private String signLabel(AxisSign sign) {
-        if (sign == null) {
-            return "";
-        }
-        String signText = signText(sign);
-        return signText.isEmpty() ? "" : signPrefix + signText + signSuffix;
-    }
-
-    // Returns the text set for the given axis sign.
-    private String signText(AxisSign sign) {
-        return switch (sign) {
-            case POSITIVE -> signPos;
-            case NEGATIVE -> signNeg;
-            case NONE -> signNone;
-        };
-    }
-
-    // Formats coordinates to the chosen number of decimal places.
     private String coordinate(double value) {
         if (precision <= 0) {
             return Long.toString((long) Math.floor(value));
@@ -138,35 +109,25 @@ public class CoordinatesHud extends MinecraftTextHud {
         return String.format(Locale.ROOT, "%." + precision + "f", value);
     }
 
-    // Returns the X, Y and Z rows for the vertical layout.
     private List<Row> rows(double x, double y, double z, CompassDirection facing) {
         return List.of(
-                new Row(axisText(prefixX, x, suffixX), facing == null ? "" : signLabel(facing.xSign())),
-                new Row(axisText(prefixY, y, suffixY), ""),
-                new Row(axisText(prefixZ, z, suffixZ), facing == null ? "" : signLabel(facing.zSign())));
+                new Row(prefixX + coordinate(x) + suffixX, facing == null ? "" : signLabel(facing.dx)),
+                new Row(prefixY + coordinate(y) + suffixY, ""),
+                new Row(prefixZ + coordinate(z) + suffixZ, facing == null ? "" : signLabel(facing.dz)));
     }
 
-    // Returns the player's rows, preview rows while editing, or none.
     private List<Row> currentRows() {
         LocalPlayer player = player();
         if (player != null) {
-            return rows(player.getX(), player.getY(), player.getZ(), facing(player));
+            return rows(player.getX(), player.getY(), player.getZ(), axisSigns ? CompassDirection.fromYaw(player.getYRot(1.0F), true) : null);
         }
         return isEditing() ? rows(0, 64, 0, null) : List.of();
     }
 
-    // Returns the space between the coordinates and signs. A Sign Gap of 0
-    // means a built-in -1, so the sign starts 1 pixel into the coordinate.
-    private float signSpacing() {
-        return BASE_SIGN_GAP + signGap;
-    }
-
-    // Returns the distance from the top of one row to the top of the next.
     private float rowStride() {
         return text().height() + rowGap;
     }
 
-    // OneConfig calls this every update to grab the coordinates and resize.
     @Override
     protected void refresh() {
         if (!vertical) {
@@ -184,18 +145,16 @@ public class CoordinatesHud extends MinecraftTextHud {
             }
         }
         verticalLayout = new VerticalLayout(rows, coordinateWidth, signWidth);
-        float width = coordinateWidth + (signWidth > 0 ? signSpacing() + signWidth : 0);
+        float width = coordinateWidth + (signWidth > 0 ? BASE_SIGN_GAP + signGap + signWidth : 0);
         float height = rows.isEmpty() ? 0 : (rows.size() - 1) * rowStride() + text().height();
         setSize(width, height);
     }
 
-    // Hides the HUD when there are no coordinates to show.
     @Override
     public boolean shouldShow() {
         return vertical ? !verticalLayout.rows().isEmpty() : super.shouldShow();
     }
 
-    // Draws one line, or the left coordinate and right sign columns.
     @Override
     protected void paint(RenderContext renderContext, float x, float y) {
         if (!vertical) {
@@ -203,7 +162,7 @@ public class CoordinatesHud extends MinecraftTextHud {
             return;
         }
         VerticalLayout layout = verticalLayout;
-        float signColumnRight = x + layout.coordinateWidth() + signSpacing() + layout.signWidth();
+        float signColumnRight = x + layout.coordinateWidth() + BASE_SIGN_GAP + signGap + layout.signWidth();
         for (int i = 0; i < layout.rows().size(); i++) {
             Row row = layout.rows().get(i);
             float rowY = y + i * rowStride();
@@ -215,7 +174,6 @@ public class CoordinatesHud extends MinecraftTextHud {
         }
     }
 
-    // Default position of HUD in OneConfig's HUD editor
     @Override
     public Pair<Float, Float> defaultPosition() {
         return new Pair<>(2.0F, 2.0F);
