@@ -27,7 +27,7 @@ dependencies {
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	def oneConfigModLoader = "fabric"
-	def oneConfigVersion = "1.6.1"
+	def oneConfigVersion = "1.9.3"
 	implementation("org.polyfrost.oneconfig:${project.minecraft_version}-${oneConfigModLoader}:${oneConfigVersion}") {
 		exclude group: 'maven.modrinth', module: 'hypixel-mod-api'
 	}
