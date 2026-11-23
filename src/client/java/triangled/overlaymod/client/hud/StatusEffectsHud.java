@@ -296,7 +296,7 @@ public class StatusEffectsHud extends OverlayHud {
             displayedFrame = new Frame(slots, labels, bounds(slots, labels));
         }
         setSize(displayedFrame.bounds().width(), displayedFrame.bounds().height());
-        setPushDown(belowBossBars && !isEditing() ? BossBars.pushBelow(this, bossBarYOffset) : 0f);
+        setPush(0f, belowBossBars && !isEditing() ? BossBars.pushBelow(this, bossBarYOffset) : 0f);
     }
 
     // Hides the HUD when there are no effects to show.

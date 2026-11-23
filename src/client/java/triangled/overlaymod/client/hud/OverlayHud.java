@@ -27,7 +27,8 @@ public abstract class OverlayHud extends Hud {
     }
 
     private transient MutableState<Size> contentSize = Compose.state(Size.EMPTY);
-    private transient MutableState<Float> pushDown = Compose.state(0f);
+    private transient MutableState<Float> pushX = Compose.state(0f);
+    private transient MutableState<Float> pushY = Compose.state(0f);
     private transient HudTextStyle textStyle;
 
     protected OverlayHud(String id, String title, Hud.Category category) {
@@ -83,10 +84,11 @@ public abstract class OverlayHud extends Hud {
         contentSize.setValue(new Size(Math.max(1, width), Math.max(1, height)));
     }
 
-    // Moves the whole HUD, background included, down without changing its
-    // saved position.
-    protected void setPushDown(float distance) {
-        pushDown.setValue(distance);
+    // Moves the whole HUD, background included, without changing its saved
+    // position.
+    protected void setPush(float x, float y) {
+        pushX.setValue(x);
+        pushY.setValue(y);
     }
 
     // OneConfig calls this every update to reload text settings and refresh.
@@ -147,13 +149,13 @@ public abstract class OverlayHud extends Hud {
     }
 
     // OneConfig draws the HUD with this: background first, then content(),
-    // both moved down by the push-down distance.
+    // both moved by the push distance.
     @Override
     public void Content(Composer composer, int changedFlags) {
         Layout layout = layout(contentSize.getValue());
         PolyModifier size = Compose.sized(layout.boxWidth(), layout.boxHeight());
         // Outer box is not absolute because polycompose 3 ignores absolute children when sizing the HUD root.
-        Compose.box(composer, size, outer -> Compose.box(outer, hudBackground(Compose.at(size, 0, pushDown.getValue())),
+        Compose.box(composer, size, outer -> Compose.box(outer, hudBackground(Compose.at(size, pushX.getValue(), pushY.getValue())),
                 childComposer -> content(childComposer, layout)));
     }
 
@@ -163,12 +165,13 @@ public abstract class OverlayHud extends Hud {
                 (renderContext, x, y) -> paint(renderContext, x + layout.originX(), y + layout.originY()));
     }
 
-    // Gives each copy of the HUD its own size, push-down and text settings.
+    // Gives each copy of the HUD its own size, push and text settings.
     @Override
     public Hud clone() {
         OverlayHud copy = (OverlayHud) super.clone();
         copy.contentSize = Compose.state(contentSize.getValue());
-        copy.pushDown = Compose.state(0f);
+        copy.pushX = Compose.state(0f);
+        copy.pushY = Compose.state(0f);
         copy.textStyle = null;
         return copy;
     }

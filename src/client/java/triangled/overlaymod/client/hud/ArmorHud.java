@@ -18,7 +18,10 @@ import org.polyfrost.compose.render.FilterQuality;
 import org.polyfrost.compose.render.PolyBitmap;
 import org.polyfrost.compose.render.PolyColor;
 import org.polyfrost.compose.render.RenderContext;
+import net.minecraft.world.entity.HumanoidArm;
+import org.polyfrost.oneconfig.api.config.v1.annotations.Number;
 import org.polyfrost.oneconfig.api.config.v1.annotations.Switch;
+import triangled.overlaymod.client.utils.Bounds;
 import org.polyfrost.oneconfig.api.hud.v1.Hud;
 import org.polyfrost.oneconfig.api.hud.v1.HudManager;
 import triangled.overlaymod.client.feature.DurabilityOverlay;
@@ -32,6 +35,8 @@ public class ArmorHud extends OverlayHud {
     private static final PolyColor NO_TINT = Colors.white();
     private static final int HOTBAR_WIDTH = 182;
     private static final int HOTBAR_HEIGHT = 22;
+    private static final int OFFHAND_WIDTH = 29;
+    private static final int OFFHAND_HEIGHT = 23;
     private static final int SLOT_SIZE = 20;
     private static final int SLOT_PADDING = 3;
 
@@ -52,6 +57,12 @@ public class ArmorHud extends OverlayHud {
 
     @Switch(title = "Render Armor Background", description = "Draw the background texture behind the armor")
     public boolean renderBackground = true;
+
+    @Switch(title = "Move Away From Offhand", description = "Move the HUD sideways while the offhand slot would overlap it")
+    public boolean avoidOffhand = true;
+
+    @Number(title = "Offhand X Offset", description = "Extra space beside the offhand slot when the HUD is moved", min = -64, max = 64)
+    public float offhandXOffset = 7.0F;
 
     // ---------------------------------------
 
@@ -105,6 +116,29 @@ public class ArmorHud extends OverlayHud {
         }
         float hudLength = Math.max(1, currentArmor.size()) * SLOT_SIZE + 2;
         setSize(vertical ? HOTBAR_HEIGHT : hudLength, vertical ? hudLength : HOTBAR_HEIGHT);
+        setPush(avoidOffhand && !isEditing() ? offhandPush() : 0f, 0f);
+    }
+
+    // Returns how far to move the HUD sideways, away from the hotbar, so it
+    // doesn't overlap vanilla's offhand slot.
+    private float offhandPush() {
+        LocalPlayer player = player();
+        if (player == null || player.getOffhandItem().isEmpty()) {
+            return 0F;
+        }
+        // The offhand slot sits on the side opposite the main arm.
+        boolean slotOnLeft = player.getMainArm() == HumanoidArm.RIGHT;
+        float hotbarLeft = HudManager.guiScreenWidth / 2F - HOTBAR_WIDTH / 2F;
+        float slotX = slotOnLeft ? hotbarLeft - OFFHAND_WIDTH : hotbarLeft + HOTBAR_WIDTH;
+        Bounds slot = Bounds.ofSize(slotX, HudManager.guiScreenHeight - OFFHAND_HEIGHT, OFFHAND_WIDTH,
+                OFFHAND_HEIGHT);
+        Bounds hud = Bounds.ofSize(getFrameX(), getFrameY(), getScaledWidth(), getScaledHeight());
+        if (!hud.overlaps(slot)) {
+            return 0F;
+        }
+        float push = slotOnLeft ? -(hud.right() - slot.left() + offhandXOffset)
+                : slot.right() + offhandXOffset - hud.left();
+        return push / Math.max(0.01F, getEffectiveScale());
     }
 
     // Hides the HUD outside a world, while spectating, or no armor to show.
