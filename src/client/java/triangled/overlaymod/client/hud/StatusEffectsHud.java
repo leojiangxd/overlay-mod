@@ -173,27 +173,6 @@ public class StatusEffectsHud extends OverlayHud {
         }
     }
 
-    // Which duration format to use, based on how much time is left.
-    private enum DurationTier {
-        DAYS(86400), HOURS(3600), LONG_MINUTES(600), MINUTES(60), SECONDS(0);
-
-        private final long minSeconds;
-
-        DurationTier(long minSeconds) {
-            this.minSeconds = minSeconds;
-        }
-
-        // Returns the tier for the given number of seconds.
-        static DurationTier of(long seconds) {
-            for (DurationTier tier : values()) {
-                if (seconds >= tier.minSeconds) {
-                    return tier;
-                }
-            }
-            return SECONDS;
-        }
-    }
-
     // Everything needed to draw the HUD: slots, labels and their area.
     private record Frame(List<Slot> slots, List<Label> labels, Bounds bounds) {
         static final Frame EMPTY = new Frame(List.of(), List.of(), Bounds.ofSize(0, 0, SLOT_SIZE, SLOT_SIZE));
@@ -317,7 +296,7 @@ public class StatusEffectsHud extends OverlayHud {
             displayedFrame = new Frame(slots, labels, bounds(slots, labels));
         }
         setSize(displayedFrame.bounds().width(), displayedFrame.bounds().height());
-        setPushDown(belowBossBars && !isEditing() ? BossBarHud.pushBelowBars(this, bossBarYOffset) : 0f);
+        setPushDown(belowBossBars && !isEditing() ? BossBars.pushBelow(this, bossBarYOffset) : 0f);
     }
 
     // Hides the HUD when there are no effects to show.
@@ -409,19 +388,21 @@ public class StatusEffectsHud extends OverlayHud {
         if (seconds >= 86400L * 99) {
             return durationText;
         }
-        DurationTier tier = DurationTier.of(seconds);
-        String expiringPrefix = tier == DurationTier.SECONDS && isExpiringSoon(effect) ? expirationText : "";
-        return prefix + expiringPrefix + DurationFormatUtil.format(seconds, pattern(tier));
+        String expiringPrefix = seconds < 60 && isExpiringSoon(effect) ? expirationText : "";
+        return prefix + expiringPrefix + DurationFormatUtil.format(seconds, pattern(seconds));
     }
 
-    // Returns the format setting for the given duration tier.
-    private String pattern(DurationTier tier) {
-        return switch (tier) {
-            case DAYS -> dayFormat;
-            case HOURS -> hourFormat;
-            case LONG_MINUTES -> minutesFormatLong;
-            case MINUTES -> minutesFormat;
-            case SECONDS -> secondsFormat;
-        };
+    // Returns the format setting for how much time is left.
+    private String pattern(long seconds) {
+        if (seconds >= 86400) {
+            return dayFormat;
+        }
+        if (seconds >= 3600) {
+            return hourFormat;
+        }
+        if (seconds >= 600) {
+            return minutesFormatLong;
+        }
+        return seconds >= 60 ? minutesFormat : secondsFormat;
     }
 }

@@ -5,7 +5,6 @@ import org.polyfrost.oneconfig.api.hud.v1.HudManager;
 import triangled.overlaymod.client.feature.ChatPeek;
 import triangled.overlaymod.client.feature.BarrierVisibility;
 import triangled.overlaymod.client.hud.ArmorHud;
-import triangled.overlaymod.client.hud.BossBarHud;
 import triangled.overlaymod.client.hud.ClockHud;
 import triangled.overlaymod.client.hud.CompassHud;
 import triangled.overlaymod.client.hud.CoordinatesHud;
@@ -22,7 +21,6 @@ public class OverlayModClient implements ClientModInitializer {
 		HudManager.register(new SprintingHud());
 		HudManager.register(new StatusEffectsHud());
 		HudManager.register(new ArmorHud());
-		HudManager.register(new BossBarHud());
 		ChatPeek.init();
 		BarrierVisibility.init();
 	}

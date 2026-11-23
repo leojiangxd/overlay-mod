@@ -2,6 +2,7 @@ package triangled.overlaymod.client.hud;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 import kotlin.Pair;
 import net.minecraft.client.player.LocalPlayer;
 import org.polyfrost.compose.render.RenderContext;
@@ -84,42 +85,26 @@ public class CoordinatesHud extends MinecraftTextHud {
         super("overlaymod_coordinates.yml", "Coordinates", Hud.Category.Companion.getINFO());
     }
 
-    // Returns the player's coordinates, with facing signs if enabled.
+    // Returns the player's coordinates on one line, with facing signs if enabled.
     @Override
     protected String getText() {
-        LocalPlayer player = player();
-        if (player == null) {
-            return "";
-        }
-        return coordinates(player.getX(), player.getY(), player.getZ(), facing(player));
+        return joined(currentRows());
     }
 
     // Shows sample coordinates in the HUD editor when there's no player.
     @Override
     protected String previewText() {
-        return coordinates(0, 64, 0, null);
+        return joined(rows(0, 64, 0, null));
+    }
+
+    // Joins the rows into one line with the separator between each axis.
+    private String joined(List<Row> rows) {
+        return rows.stream().map(row -> row.coordinate() + row.sign()).collect(Collectors.joining(separator));
     }
 
     // Returns the direction the player is facing, or null if signs are off.
     private CompassDirection facing(LocalPlayer player) {
         return axisSigns ? CompassDirection.fromYaw(player.getYRot(1.0F), true) : null;
-    }
-
-    // Builds the full X, Y, Z text with separators between each axis.
-    private String coordinates(double x, double y, double z, CompassDirection facing) {
-        StringBuilder text = new StringBuilder(32);
-        appendAxis(text, prefixX, x, facing == null ? null : facing.xSign(), suffixX);
-        text.append(separator);
-        appendAxis(text, prefixY, y, null, suffixY);
-        text.append(separator);
-        appendAxis(text, prefixZ, z, facing == null ? null : facing.zSign(), suffixZ);
-        return text.toString();
-    }
-
-    // Adds one axis to the text: its coordinate with prefix and suffix, then
-    // its sign with the sign's prefix and suffix.
-    private void appendAxis(StringBuilder text, String prefix, double value, AxisSign sign, String suffix) {
-        text.append(axisText(prefix, value, suffix)).append(signLabel(sign));
     }
 
     // Returns one coordinate with its prefix and suffix.
@@ -234,13 +219,5 @@ public class CoordinatesHud extends MinecraftTextHud {
     @Override
     public Pair<Float, Float> defaultPosition() {
         return new Pair<>(2.0F, 2.0F);
-    }
-
-    // Gives each copy of the HUD its own rows so copies don't share them.
-    @Override
-    public Hud clone() {
-        CoordinatesHud copy = (CoordinatesHud) super.clone();
-        copy.verticalLayout = VerticalLayout.EMPTY;
-        return copy;
     }
 }

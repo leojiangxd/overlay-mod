@@ -66,7 +66,7 @@ public abstract class OverlayHud extends Hud {
     // Returns this HUD's text settings, creating them if needed.
     protected HudTextStyle text() {
         if (textStyle == null) {
-            textStyle = HudTextStyle.of(this);
+            textStyle = new HudTextStyle(this);
         }
         return textStyle;
     }
@@ -92,7 +92,7 @@ public abstract class OverlayHud extends Hud {
     // OneConfig calls this every update to reload text settings and refresh.
     @Override
     public boolean update() {
-        textStyle = HudTextStyle.of(this);
+        textStyle = new HudTextStyle(this);
         refresh();
         return true;
     }
@@ -152,7 +152,7 @@ public abstract class OverlayHud extends Hud {
     public void Content(Composer composer, int changedFlags) {
         Layout layout = layout(contentSize.getValue());
         PolyModifier size = Compose.sized(layout.boxWidth(), layout.boxHeight());
-        // Outer box is in normal flow because polycompose 3 ignores absolute children when sizing the HUD root.
+        // Outer box is not absolute because polycompose 3 ignores absolute children when sizing the HUD root.
         Compose.box(composer, size, outer -> Compose.box(outer, hudBackground(Compose.at(size, 0, pushDown.getValue())),
                 childComposer -> content(childComposer, layout)));
     }

@@ -32,7 +32,7 @@ public final class HudTextStyle {
     private final PolyColor textColor;
 
     // Copies the font, scale, shadow, color and formatting settings from a HUD.
-    private HudTextStyle(Hud hud) {
+    public HudTextStyle(Hud hud) {
         usePoppins = hud.getFont() == org.polyfrost.oneconfig.api.hud.v1.Font.Poppins;
         poppinsFontName = usePoppins ? hud.getPoppinsFontName() : null;
         textScale = hud.getTextScale();
@@ -55,11 +55,6 @@ public final class HudTextStyle {
             formatCodes.append("§n");
         }
         hudFormatCodes = formatCodes.toString();
-    }
-
-    // Returns the text settings for the given HUD.
-    public static HudTextStyle of(Hud hud) {
-        return new HudTextStyle(hud);
     }
 
     // Returns the HUD's text color.

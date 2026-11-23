@@ -3,15 +3,14 @@
 	"package": "triangled.overlaymod.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"BossHealthOverlayAccessor",
 		"ChatPeekChatComponentMixin",
 		"ChatPeekHudMixin",
 		"ChatPeekMouseHandlerMixin",
 		"DurabilityTextMixin",
-		"HideVanillaBossBarsMixin",
 		"HideVanillaEffectsMixin",
-		"HudAccessor",
 		"BarrierParticlesMixin",
+		"BossHealthOverlayAccessor",
+		"HudAccessor",
 		"BarrierVisibilityMixin"
 	],
 	"injectors": {
