@@ -104,7 +104,7 @@ public class CoordinatesHud extends MinecraftTextHud {
 
     private String coordinate(double value) {
         if (precision <= 0) {
-            return Long.toString((long) Math.floor(value));
+            return Long.toString(Math.round(value));
         }
         return String.format(Locale.ROOT, "%." + precision + "f", value);
     }
